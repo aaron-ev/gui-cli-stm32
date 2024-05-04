@@ -16,7 +16,7 @@
 * Add error handling to serial port  capability
 * Remove debug messages
 * Add matplot to display PWM signals
-* Change connect and disconnect buttons to be just one button
+* Change connect and disconnect buttons to be just one button -- done
 
 ## Microcontroller
 
