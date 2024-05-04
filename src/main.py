@@ -33,6 +33,7 @@ class GuiCli(AppMainWindow):
     defaultFrameStyle = "QFrame { background-color: #1f1f1f; border-radius: 10px; border: 2px solid #333; }"
     defaultLabelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
     defaultControlFrameSize = 275
+    defaultLogFrameSize = 400
     labelPointSize = 12
 
     def __init__(self, title, w, h):
@@ -62,6 +63,12 @@ class GuiCli(AppMainWindow):
 
     def slotComboBoxComPorts(self):
         pass
+        # ports = serial.tools.list_ports.comports()
+        # self.comboBoxComPorts.clear()
+        # for i, port in enumerate(ports):
+        #     self.comboBoxComPorts.addItem("")
+        #     if i == len(ports): return
+
     def slotComboBoxBaudrates(self):
         pass
 
@@ -69,14 +76,16 @@ class GuiCli(AppMainWindow):
     #                    START OF INIT FUNCTIONS
     ##3###########################################################
     def initLogSection(self):
+        labelSerialConfig = self.aWidgets.newLabel("Serial configuration", self.labelPointSize, self.defaultLabelStyle)
+
         # Create combobox for sandboxes
         self.comboBoxComPorts = self.aWidgets.newComboBox(self.slotComboBoxComPorts)
-        self.comboBoxBaudrates = self.aWidgets.newComboBox(self.slotComboBoxBaudrates)
+        self.comboBoxBaudrates = self.aWidgets.newComboBox()
 
         # Update combobox with available ports
         ports = serial.tools.list_ports.comports()
         for port in ports:
-            self.comboBoxComPorts.addItem(port.name)
+            self.comboBoxComPorts.addItem(port.description)
 
         # Update combobox with supported baudrates
         for baud in self.supportedBaudarates:
@@ -94,10 +103,11 @@ class GuiCli(AppMainWindow):
                                                             None,
                                                             self.styles['button']
                                                           )
-        self.layoutLog.addWidget(self.comboBoxComPorts, 0, 0)
-        self.layoutLog.addWidget(self.comboBoxBaudrates, 0, 1)
-        self.layoutLog.addWidget(self.buttonConnectDisconnect, 1, 0, 1, -1)
-        self.layoutLog.addWidget(self.dockLog, 2, 0, 1, -1)
+        self.layoutLog.addWidget(labelSerialConfig, 0, 0, 1, -1)
+        self.layoutLog.addWidget(self.comboBoxComPorts, 1, 0)
+        self.layoutLog.addWidget(self.comboBoxBaudrates, 1, 1)
+        self.layoutLog.addWidget(self.buttonConnectDisconnect, 2, 0, 1, -1)
+        self.layoutLog.addWidget(self.dockLog, 3, 0, 1, -1)
 
     def initControlSection(self):
         # labelGpio = self.aWidgets.newLabel("GPIOx PORT", self.labelPointSize, self.defaultLabelStyle)
@@ -291,7 +301,7 @@ class GuiCli(AppMainWindow):
         # Frame: Frame for logs and data visualization
         frame = QFrame()
         frame.setStyleSheet(self.defaultFrameStyle)
-        frame.setMinimumWidth(self.defaultControlFrameSize)
+        frame.setMinimumWidth(self.defaultLogFrameSize)
         self.layoutLog = QGridLayout()
         frame.setLayout(self.layoutLog)
         self.gridLayout.addWidget(frame, 0, 1)

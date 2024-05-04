@@ -291,9 +291,9 @@ class AWidgets():
 
     def newComboBox(self, slot = None):
         comboBox = QComboBox()
-        comboBox.setFixedSize(250, 30)
+        # comboBox.setFixedSize(250, 30)
         if slot is not None:
-            comboBox.activated.connect(slot)
+            comboBox.currentIndexChanged.connect(slot)
         comboBox.setStyleSheet(self.styles['comboBox'])
         font = QFont()
         font.setPointSize(12)
