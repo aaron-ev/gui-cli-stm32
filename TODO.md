@@ -16,6 +16,7 @@
 * Add error handling to serial port  capability
 * Remove debug messages
 * Add matplot to display PWM signals
+* Change connect and disconnect buttons to be just one button
 
 ## Microcontroller
 
@@ -24,5 +25,5 @@
 * Add a new way to send PWM info to the host so that it can display it.
 
 ## Building
-* Create a batch file to create an standalone executable (use pyinstaller)
+* Create a batch file to create an standalone executable (use pyinstaller) -- done
 * Create a batch file to install all dependencies automatically
