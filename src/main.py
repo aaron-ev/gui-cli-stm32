@@ -28,6 +28,10 @@ class GuiCli(AppMainWindow):
     appVersion = {'major': '1', 'minor':'0'}
     supportedBaudarates = ['9600', '115200']
     buttonSize = (250,30)
+    defaultFrameStyle = "QFrame { background-color: #1f1f1f; border-radius: 10px; border: 2px solid #333; }"
+    defaultControlFrameSize = 275
+
+
 
     def __init__(self, title, w, h):
         super().__init__() # Allows the use of abstract class to work
@@ -96,11 +100,11 @@ class GuiCli(AppMainWindow):
                                                       self.styles['button']
                                                       )
 
-        self.layoutGrid.addWidget(self.comboBoxComPorts, 0, 2)
-        self.layoutGrid.addWidget(self.comboBoxBaudrates, 0, 3)
-        self.layoutGrid.addWidget(buttonConnectToPort, 1, 2)
-        self.layoutGrid.addWidget(buttonDisconnectFromPort, 1, 3)
-        self.layoutGrid.addWidget(self.dockLog, 2, 2, 1, -1)
+        self.layoutLog.addWidget(self.comboBoxComPorts, 0, 0)
+        self.layoutLog.addWidget(self.comboBoxBaudrates, 0, 1)
+        self.layoutLog.addWidget(buttonConnectToPort, 1, 0)
+        self.layoutLog.addWidget(buttonDisconnectFromPort, 1, 1)
+        self.layoutLog.addWidget(self.dockLog, 2, 0, 1, -1)
 
     def initControlSection(self):
 
@@ -117,7 +121,7 @@ class GuiCli(AppMainWindow):
 
         # Button: Set to ON
         buttonPinON = self.aWidgets.newButton("ON",
-                                            self.slotButtonDisconnectPort,
+                                            self.slotButtonOn,
                                             self.buttonsFont,
                                             self.iconPaths['serialPort'], \
                                             None,
@@ -125,17 +129,23 @@ class GuiCli(AppMainWindow):
                                             )
         # Button: Set to OFF
         buttonPinOff= self.aWidgets.newButton("OFF",
-                                            self.slotButtonDisconnectPort,
+                                            self.slotButtonOff,
                                             self.buttonsFont,
                                             self.iconPaths['serialPort'], \
                                             None,
                                             self.styles['button']
                                             )
 
-        self.layoutGrid.addWidget(self.comboBoxGpios, 2, 0)
-        self.layoutGrid.addWidget(self.comboBoxPins, 2, 1)
-        self.layoutGrid.addWidget(buttonPinON, 3, 0)
-        self.layoutGrid.addWidget(buttonPinOff, 3, 1)
+        self.layoutFrameControl.addWidget(self.comboBoxGpios, 0, 0)
+        self.layoutFrameControl.addWidget(self.comboBoxPins, 0, 1)
+        self.layoutFrameControl.addWidget(buttonPinON, 1, 0)
+        self.layoutFrameControl.addWidget(buttonPinOff, 1, 1)
+
+    def slotButtonOn(self):
+         self.writeToLog("button on\n", 'yellow')
+    def slotButtonOff(self):
+         self.writeToLog("button off\n", 'yellow')
+
 
     def centerWindow(self):
         # Get the geometry of the screen
@@ -151,8 +161,9 @@ class GuiCli(AppMainWindow):
         """ Set default main windows properties  """
         self.centerWindow()
         self.setMinimumSize(w, h)
-        self.setWindowTitle(title + f"v{self.appVersion['major']}.{self.appVersion['minor']} BETA underdevelopment")
+        self.setWindowTitle(title + f" v{self.appVersion['major']}.{self.appVersion['minor']} BETA underdevelopment")
         self.setWindowIcon(QIcon(appRootPath + self.iconPaths["mainIcon"]))
+        self.setStyleSheet(self.styles['mainWindow'])
 
     def initComboBoxes(self):
         # Create combobox for sandboxes
@@ -174,21 +185,37 @@ class GuiCli(AppMainWindow):
         for baud in self.supportedBaudarates:
             self.comboBoxBaudrates.addItem(baud)
 
-        self.layoutGrid.addWidget(self.comboBoxComPorts, 0, 0)
-        self.layoutGrid.addWidget(self.comboBoxBaudrates, 0, 1)
-        self.layoutGrid.addWidget(self.comboBoxBaudrates, 1, 0)
-        self.layoutGrid.addWidget(self.comboBoxBaudrates, 1, 1)
+        self.gridLayout.addWidget(self.comboBoxComPorts, 0, 0)
+        self.gridLayout.addWidget(self.comboBoxBaudrates, 0, 1)
+        self.gridLayout.addWidget(self.comboBoxBaudrates, 1, 0)
+        self.gridLayout.addWidget(self.comboBoxBaudrates, 1, 1)
 
     def initLayouts(self):
         # Central widget
         self.centralWidget = QWidget()
+
         # Layout: Main
-        self.layoutGrid = QGridLayout(self.centralWidget)
-        self.centralWidget.setLayout(self.layoutGrid)
+        self.gridLayout = QGridLayout(self.centralWidget)
+        self.centralWidget.setLayout(self.gridLayout)
+        self.setCentralWidget(self.centralWidget)
+        self.centralWidget.setLayout(self.gridLayout)
         self.setCentralWidget(self.centralWidget)
 
-        self.centralWidget.setLayout(self.layoutGrid)
-        self.setCentralWidget(self.centralWidget)
+        # Frame: Frame for all buttons (any kind of control)
+        frame = QFrame()
+        frame.setStyleSheet(self.defaultFrameStyle)
+        frame.setMinimumWidth(self.defaultControlFrameSize)
+        self.layoutFrameControl = QGridLayout()
+        frame.setLayout(self.layoutFrameControl)
+        self.gridLayout.addWidget(frame, 0, 0)
+
+        # Frame: Frame for logs and data visualization
+        frame = QFrame()
+        frame.setStyleSheet(self.defaultFrameStyle)
+        frame.setMinimumWidth(self.defaultControlFrameSize)
+        self.layoutLog = QGridLayout()
+        frame.setLayout(self.layoutLog)
+        self.gridLayout.addWidget(frame, 0, 1)
 
     #############################################################
     #                    START OF SLOT FUNCTIONS
@@ -201,9 +228,10 @@ class GuiCli(AppMainWindow):
         baud = self.comboBoxBaudrates.currentText()
         try:
             self.serialDev.open(portName, baud)
-            self.writeToLog(f'Connected to {portName}\n')
         except Exception as e:
             self.showErrorMessage(f'Error {e}')
+            return
+        self.writeToLog(f'Connected to {portName}\n')
 
     def slotButtonDisconnectPort(self):
         self.serialDev.close()
@@ -241,5 +269,5 @@ class GuiCli(AppMainWindow):
 
 if __name__ == '__main__':
     app = QApplication([])
-    codeLink = GuiCli("GuiCli", APP_WIDTH, APP_HIGHT)
+    codeLink = GuiCli("GUI CLI", APP_WIDTH, APP_HIGHT)
     app.exec_()
