@@ -181,26 +181,50 @@ class GuiCli(AppMainWindow):
         self.layoutFrameControl.addWidget(buttonVersion, 7, 0, 1, -1)
 
     def slotVersion(self):
-        self.micro.getVersion()
+        try:
+            self.micro.getVersion()
+        except Exception as e:
+            self.showErrorMessage(f'Error: {e}')
 
     def slotHelp(self):
-        self.micro.help()
+        try:
+            self.micro.help()
+        except Exception as e:
+            self.showErrorMessage(f'Error: {e}')
+
     def slotTicks(self):
-        self.micro.getTicks()
+        try:
+            self.micro.getTicks()
+        except Exception as e:
+            self.showErrorMessage(f'Error: {e}')
+
     def slotClk(self):
-        self.micro.getClk()
+        try:
+            self.micro.getClk()
+        except Exception as e:
+            self.showErrorMessage(f'Error: {e}')
+
     def slotHeap(self):
-        self.micro.getHeap()
+        try:
+            self.micro.getHeap()
+        except Exception as e:
+            self.showErrorMessage(f'Error: {e}')
 
     def slotButtonOn(self):
-         gpio = self.comboBoxGpios.currentText()
-         pin = self.comboBoxPins.currentText()
-         self.micro.writePin(gpio, pin, True)
+        gpio = self.comboBoxGpios.currentText()
+        pin = self.comboBoxPins.currentText()
+        try:
+             self.micro.writePin(gpio, pin, True)
+        except Exception as e:
+            self.showErrorMessage(f'Error: {e}')
 
     def slotButtonOff(self):
-         gpio = self.comboBoxGpios.currentText()
-         pin = self.comboBoxPins.currentText()
-         self.micro.writePin(gpio, pin, False)
+        gpio = self.comboBoxGpios.currentText()
+        pin = self.comboBoxPins.currentText()
+        try:
+            self.micro.writePin(gpio, pin, False)
+        except Exception as e:
+            self.showErrorMessage(f'Error: {e}')
 
     def centerWindow(self):
         # Get the geometry of the screen

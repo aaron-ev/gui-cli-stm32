@@ -31,9 +31,9 @@ class ThreadSerialDev(QThread):
                                        )
 
     def write(self, str):
-        self.start()
         """ Write to the serial port """
         if self.serialDev is not None and self.serialDev.is_open:
+            self.start()
             try:
                 data = str.encode()
                 print(f'SERIAL: {data}')
@@ -42,13 +42,16 @@ class ThreadSerialDev(QThread):
                 print(f'Error: {e}')
                 self.close()
         else:
-            print("Error opening the device")
+            raise serial.SerialException("Serial device not opened")
 
     def run(self):
         self.read()
 
     def read(self, timeOutS = 3):
         """ Read from the serial port """
+        if self.serialDev is None or not self.serialDev.is_open:
+            raise serial.SerialException("Serial device not opened")
+
         data = b''
         startTimeMs = time.time() * 1000 # Convert it to ms
         timeElapsed = 0
@@ -60,10 +63,10 @@ class ThreadSerialDev(QThread):
         return data
 
     def close(self):
+        """ Close the serial port """
         if self.isRunning():
             print("Waiting for thread to finish\n")
             self.wait()
-        """ Close the serial port """
         if self.serialDev is not None and self.serialDev.is_open:
             self.serialDev.close()
 
