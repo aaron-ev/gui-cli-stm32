@@ -17,28 +17,29 @@ from PyQt5.QtCore import Qt, pyqtSignal, QSettings, QMutex, QWaitCondition, QThr
 from PyQt5.QtGui import QIcon, QFont, QTextCharFormat, QColor, QPixmap
 import subprocess
 
-from serialDev import SerialDev
 from appClasses import AppMainWindow, AWidgets
 from micro import Micro
 
 APP_WIDTH = 1020
 APP_HIGHT = 420
 
+import serial
+import serial.tools.list_ports
+
 class GuiCli(AppMainWindow):
     appVersion = {'major': '1', 'minor':'0'}
     supportedBaudarates = ['9600', '115200']
     buttonSize = (250,30)
     defaultFrameStyle = "QFrame { background-color: #1f1f1f; border-radius: 10px; border: 2px solid #333; }"
+    defaultLabelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
     defaultControlFrameSize = 275
-
-
+    labelPointSize = 12
 
     def __init__(self, title, w, h):
         super().__init__() # Allows the use of abstract class to work
-        self.micro = Micro()
+        self.micro = Micro(callbackDataRead = self.callbackMicroReadData)
         self.appRootPath = os.getcwd()
         self.initMainWindow(self.appRootPath, title, w, h)
-        self.serialDev = SerialDev()
         self.aWidgets = AWidgets()
         self.buttonsFont = QFont()
         self.buttonsFont.setFamily('Helvetica')
@@ -56,6 +57,8 @@ class GuiCli(AppMainWindow):
         # Initialize event loop by calling show method
         self.show()
 
+    def callbackMicroReadData(self, data):
+        self.writeToLog(data)
 
     def slotComboBoxComPorts(self):
         pass
@@ -71,7 +74,7 @@ class GuiCli(AppMainWindow):
         self.comboBoxBaudrates = self.aWidgets.newComboBox(self.slotComboBoxBaudrates)
 
         # Update combobox with available ports
-        ports = self.serialDev.listPorts()
+        ports = serial.tools.list_ports.comports()
         for port in ports:
             self.comboBoxComPorts.addItem(port.name)
 
@@ -87,7 +90,7 @@ class GuiCli(AppMainWindow):
         buttonConnectToPort = self.aWidgets.newButton("Connect",
                                                       self.slotButtonConnectPort,
                                                       self.buttonsFont,
-                                                      self.iconPaths['serialPort'], \
+                                                      self.appRootPath + self.iconPaths['serialPort'], \
                                                       None,
                                                       self.styles['button']
                                                       )
@@ -95,7 +98,7 @@ class GuiCli(AppMainWindow):
         buttonDisconnectFromPort = self.aWidgets.newButton("Disconnect",
                                                       self.slotButtonDisconnectPort,
                                                       self.buttonsFont,
-                                                      self.iconPaths['serialPort'], \
+                                                      self.appRootPath + self.iconPaths['serialPort'], \
                                                       None,
                                                       self.styles['button']
                                                       )
@@ -107,6 +110,8 @@ class GuiCli(AppMainWindow):
         self.layoutLog.addWidget(self.dockLog, 2, 0, 1, -1)
 
     def initControlSection(self):
+        # labelGpio = self.aWidgets.newLabel("GPIOx PORT", self.labelPointSize, self.defaultLabelStyle)
+        # labelPinNumber = self.aWidgets.newLabel("Pin number", self.labelPointSize, self.defaultLabelStyle)
 
         # Combobox: GPIOS
         self.comboBoxGpios = self.aWidgets.newComboBox()
@@ -123,7 +128,7 @@ class GuiCli(AppMainWindow):
         buttonPinON = self.aWidgets.newButton("ON",
                                             self.slotButtonOn,
                                             self.buttonsFont,
-                                            self.iconPaths['serialPort'], \
+                                            self.appRootPath + self.iconPaths['serialPort'],
                                             None,
                                             self.styles['button']
                                             )
@@ -131,21 +136,81 @@ class GuiCli(AppMainWindow):
         buttonPinOff= self.aWidgets.newButton("OFF",
                                             self.slotButtonOff,
                                             self.buttonsFont,
-                                            self.iconPaths['serialPort'], \
+                                            self.appRootPath + self.iconPaths['serialPort'],
+                                            None,
+                                            self.styles['button']
+                                            )
+        # Button: Get the project version
+        buttonVersion = self.aWidgets.newButton("Version",
+                                            self.slotVersion,
+                                            self.buttonsFont,
+                                            self.appRootPath + self.iconPaths['serialPort'],
+                                            None,
+                                            self.styles['button']
+                                            )
+        buttonHelp = self.aWidgets.newButton("Help",
+                                            self.slotHelp,
+                                            self.buttonsFont,
+                                            self.appRootPath + self.iconPaths['serialPort'],
+                                            None,
+                                            self.styles['button']
+                                            )
+        buttonHeap = self.aWidgets.newButton("heap",
+                                            self.slotHeap,
+                                            self.buttonsFont,
+                                            self.appRootPath + self.iconPaths['serialPort'],
+                                            None,
+                                            self.styles['button']
+                                            )
+        buttonTicks = self.aWidgets.newButton("ticks",
+                                            self.slotTicks,
+                                            self.buttonsFont,
+                                            self.appRootPath + self.iconPaths['serialPort'],
+                                            None,
+                                            self.styles['button']
+                                            )
+        buttonClk = self.aWidgets.newButton("CLK",
+                                            self.slotClk,
+                                            self.buttonsFont,
+                                            self.appRootPath + self.iconPaths['serialPort'],
                                             None,
                                             self.styles['button']
                                             )
 
+        # self.layoutFrameControl.addWidget(labelGpio, 0, 0)
+        # self.layoutFrameControl.addWidget(labelPinNumber, 0, 1)
         self.layoutFrameControl.addWidget(self.comboBoxGpios, 0, 0)
         self.layoutFrameControl.addWidget(self.comboBoxPins, 0, 1)
         self.layoutFrameControl.addWidget(buttonPinON, 1, 0)
         self.layoutFrameControl.addWidget(buttonPinOff, 1, 1)
+        self.layoutFrameControl.addWidget(buttonVersion, 2, 0, 1, -1)
+        self.layoutFrameControl.addWidget(buttonHelp, 3, 0, 1, -1)
+        self.layoutFrameControl.addWidget(buttonHeap, 4, 0, 1, -1)
+        self.layoutFrameControl.addWidget(buttonTicks, 5, 0, 1, -1)
+        self.layoutFrameControl.addWidget(buttonClk, 6, 0, 1, -1)
+        self.layoutFrameControl.addWidget(buttonVersion, 7, 0, 1, -1)
+
+    def slotVersion(self):
+        self.micro.getVersion()
+
+    def slotHelp(self):
+        self.micro.help()
+    def slotTicks(self):
+        self.micro.getTicks()
+    def slotClk(self):
+        self.micro.getClk()
+    def slotHeap(self):
+        self.micro.getHeap()
 
     def slotButtonOn(self):
-         self.writeToLog("button on\n", 'yellow')
-    def slotButtonOff(self):
-         self.writeToLog("button off\n", 'yellow')
+         gpio = self.comboBoxGpios.currentText()
+         pin = self.comboBoxPins.currentText()
+         self.micro.writePin(gpio, pin, True)
 
+    def slotButtonOff(self):
+         gpio = self.comboBoxGpios.currentText()
+         pin = self.comboBoxPins.currentText()
+         self.micro.writePin(gpio, pin, False)
 
     def centerWindow(self):
         # Get the geometry of the screen
@@ -178,7 +243,7 @@ class GuiCli(AppMainWindow):
         self.comboBoxComPorts.setFont(font)
         self.comboBoxBaudrates.setFont(font)
 
-        ports = self.serialDev.listPorts()
+        ports = serial.tools.list_ports.comports()
         for port in ports:
             self.comboBoxComPorts.addItem(port.name)
 
@@ -227,14 +292,19 @@ class GuiCli(AppMainWindow):
 
         baud = self.comboBoxBaudrates.currentText()
         try:
-            self.serialDev.open(portName, baud)
+            self.micro.open(portName, baud)
         except Exception as e:
             self.showErrorMessage(f'Error {e}')
             return
-        self.writeToLog(f'Connected to {portName}\n')
+        self.writeToLog(f'Connected to {portName}\n', 'yellow')
 
     def slotButtonDisconnectPort(self):
-        self.serialDev.close()
+        try:
+            self.micro.close()
+        except Exception as e:
+            print(f'Error {e}')
+
+        self.writeToLog("Disconnected\n", 'yellow')
 
     def writeToLog(self, text, color = 'white'):
         cursor = self.textBoxLog.textCursor()

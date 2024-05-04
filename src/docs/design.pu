@@ -1,0 +1,39 @@
+@startuml
+' hide footbox
+
+' mainWindow -> microCLI:
+
+
+class MainWindow
+{
+    -AllWidgets()
+}
+
+class Micro
+{
+    +getVersion()
+    +write()
+    +read()
+    +getGpios()
+    +getPins()
+}
+
+Class Qthread
+{
+
+}
+
+Class ThreadSerialDev
+{
+    +write()
+    +read()
+    +open()
+    +close()
+    +listPorts()
+}
+
+MainWindow *-- Micro
+Micro *-- ThreadSerialDev
+Qthread <|-- ThreadSerialDev
+
+@enduml

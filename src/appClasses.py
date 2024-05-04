@@ -143,7 +143,7 @@ class AppMainWindow(QMainWindow):
                                 color: white; /* Text color */
                             }
                         """,
-                "running": """  
+                "running": """
                                 QLineEdit {
                                 background-color: #2E2E2E; /* Dark gray background */
                                 color: white; /* Text color */
@@ -152,7 +152,7 @@ class AppMainWindow(QMainWindow):
                                 padding: 5px 10px; /* Padding */
                                 }
                             """,
-                "stopped": """ 
+                "stopped": """
                                 QLineEdit {
                                 background-color: #2E2E2E; /* Dark gray background */
                                 color: white; /* Text color */
@@ -161,7 +161,7 @@ class AppMainWindow(QMainWindow):
                                 padding: 5px 10px; /* Padding */
                                 }
                             """,
-                "error": """ 
+                "error": """
                                 QLineEdit {
                                 background-color: #2E2E2E; /* Dark gray background */
                                 color: white; /* Text color */
@@ -170,7 +170,7 @@ class AppMainWindow(QMainWindow):
                                 padding: 5px 10px; /* Padding */
                                 }
                             """,
-                "idle": """ 
+                "idle": """
                                 QLineEdit {
                                 background-color: #2E2E2E; /* Dark gray background */
                                 color: white; /* Text color */
@@ -179,7 +179,7 @@ class AppMainWindow(QMainWindow):
                                 padding: 5px 10px; /* Padding */
                                 }
                             """,
-                "success": """ 
+                "success": """
                                 QLineEdit {
                                 background-color: #2E2E2E; /* Dark gray background */
                                 color: white; /* Text color */
@@ -188,7 +188,7 @@ class AppMainWindow(QMainWindow):
                                 padding: 5px 10px; /* Padding */
                                 }
                             """,
-                "unknown": """ 
+                "unknown": """
                                 QLineEdit {
                                 background-color: #2E2E2E; /* Dark gray background */
                                 color: white; /* Text color */
@@ -197,7 +197,7 @@ class AppMainWindow(QMainWindow):
                                 padding: 5px 10px; /* Padding */
                                 }
                             """,
-                "line": """ 
+                "line": """
                             QLineEdit {
                             background-color: #2E2E2E; /* Dark gray background */
                             color: white; /* Text color */
@@ -220,7 +220,7 @@ class AppMainWindow(QMainWindow):
 class AWidgets():
     bgTextBoxes = '#2C2C2C'
     colorTextBoxes = 'white'
-    styles = {"line": """ 
+    styles = {"line": """
                         QLineEdit {
                         background-color: #2E2E2E; /* Dark gray background */
                         color: white; /* Text color */
@@ -233,7 +233,7 @@ class AWidgets():
                                 color: white; /* Default text color */
                                 text-align: center;
                            """
-            }       
+            }
     defaultLabelColor = 'white'
     defaultDockBg = "#333333"
     defaultDockColor = "white"
@@ -261,6 +261,7 @@ class AWidgets():
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         if style is not None:
             label.setStyleSheet(style)
+        label.maximumHeight(20)
         return label
 
     def newButton(self, text, slot = None, font = None, iconPath = None, size = None, style = None):
@@ -274,7 +275,7 @@ class AWidgets():
             button.setIcon(QIcon(iconPath))
         if size is not None:
             button.setFixedSize(size[0], size[1])
-        if style is not None: 
+        if style is not None:
             button.setStyleSheet(style)
         return button
 
@@ -306,12 +307,12 @@ class AWidgets():
         font.setPointSize(12)
         comboBox.setFont(font)
         return comboBox
-    
+
     def newDock(self, title, name):
         dock = QDockWidget(title)
         dock.setObjectName(name)
         dock.setTitleBarWidget(QWidget(None)) # Remove title bar
-        
+
         font = QFont()
         font.setPointSize(10)
         textBoxLog = QTextEdit()
@@ -320,3 +321,15 @@ class AWidgets():
         dock.setWidget(textBoxLog)
         dock.setStyleSheet(f'background-color: {self.defaultDockBg}; color: {self.defaultDockColor};')
         return (dock, textBoxLog)
+
+    def newLabel(self, text, pointSize, style = None):
+        label = QLabel(text)
+        label.setStyleSheet(f'color: {self.defaultLabelColor}')
+        font = QFont()
+        font.setPointSize(pointSize)
+        label.setFont(font)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        if style is not None:
+            label.setStyleSheet(style)
+        return label
+
