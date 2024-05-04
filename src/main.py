@@ -83,8 +83,8 @@ class GuiCli(AppMainWindow):
         self.comboBoxBaudrates = self.aWidgets.newComboBox()
 
         # Update combobox with available ports
-        ports = serial.tools.list_ports.comports()
-        for port in ports:
+        self.ports = serial.tools.list_ports.comports()
+        for port in self.ports:
             self.comboBoxComPorts.addItem(port.description)
 
         # Update combobox with supported baudrates
@@ -310,7 +310,11 @@ class GuiCli(AppMainWindow):
     #                    START OF SLOT FUNCTIONS
     #############################################################
     def slotConnectDisconnect(self):
-        portName = self.comboBoxComPorts.currentText()
+        portDescription = self.comboBoxComPorts.currentText()
+        for port in self.ports:
+            if port.description == portDescription:
+                portName = port.name
+
         if len(portName) < 1:
             self.showErrorMessage("Invalid port name")
 
