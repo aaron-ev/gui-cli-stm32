@@ -87,26 +87,16 @@ class GuiCli(AppMainWindow):
         self.dockLog, self.textBoxLog = self.aWidgets.newDock("Log", "dock")
 
         # Button: Connect to serial port
-        buttonConnectToPort = self.aWidgets.newButton("Connect",
-                                                      self.slotButtonConnectPort,
-                                                      self.buttonsFont,
-                                                      self.appRootPath + self.iconPaths['serialPort'], \
-                                                      None,
-                                                      self.styles['button']
-                                                      )
-        # Button: Disconnect from serial port
-        buttonDisconnectFromPort = self.aWidgets.newButton("Disconnect",
-                                                      self.slotButtonDisconnectPort,
-                                                      self.buttonsFont,
-                                                      self.appRootPath + self.iconPaths['serialPort'], \
-                                                      None,
-                                                      self.styles['button']
-                                                      )
-
+        self.buttonConnectDisconnect = self.aWidgets.newButton("Start monitoring",
+                                                            self.slotConnectDisconnect,
+                                                            self.buttonsFont,
+                                                            self.appRootPath + self.iconPaths['serialPort'], \
+                                                            None,
+                                                            self.styles['button']
+                                                          )
         self.layoutLog.addWidget(self.comboBoxComPorts, 0, 0)
         self.layoutLog.addWidget(self.comboBoxBaudrates, 0, 1)
-        self.layoutLog.addWidget(buttonConnectToPort, 1, 0)
-        self.layoutLog.addWidget(buttonDisconnectFromPort, 1, 1)
+        self.layoutLog.addWidget(self.buttonConnectDisconnect, 1, 0, 1, -1)
         self.layoutLog.addWidget(self.dockLog, 2, 0, 1, -1)
 
     def initControlSection(self):
@@ -285,18 +275,23 @@ class GuiCli(AppMainWindow):
     #############################################################
     #                    START OF SLOT FUNCTIONS
     #############################################################
-    def slotButtonConnectPort(self):
+    def slotConnectDisconnect(self):
         portName = self.comboBoxComPorts.currentText()
         if len(portName) < 1:
             self.showErrorMessage("Invalid port name")
 
         baud = self.comboBoxBaudrates.currentText()
         try:
-            self.micro.open(portName, baud)
+            if self.micro.isOpen():
+                self.micro.close()
+                self.buttonConnectDisconnect.setText("Start monitoring")
+                self.writeToLog(f'Disconnected from {portName}\n', 'yellow')
+            else:
+                self.micro.open(portName, baud)
+                self.writeToLog(f'Connected to {portName}\n', 'yellow')
+                self.buttonConnectDisconnect.setText("Stop monitoring")
         except Exception as e:
             self.showErrorMessage(f'Error {e}')
-            return
-        self.writeToLog(f'Connected to {portName}\n', 'yellow')
 
     def slotButtonDisconnectPort(self):
         try:

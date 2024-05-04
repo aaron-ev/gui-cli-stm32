@@ -70,3 +70,9 @@ class ThreadSerialDev(QThread):
     def stop(self):
         self.wait()
         print("debug: process stopped\n")
+
+    def isOpen(self):
+        if self.serialDev is not None:
+            return self.serialDev.is_open
+        else:
+            return False

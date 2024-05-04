@@ -63,3 +63,5 @@ class Micro():
     def close(self):
         self.serialThread.close()
 
+    def isOpen(self):
+        return self.serialThread.isOpen()
