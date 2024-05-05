@@ -2,7 +2,7 @@ from PyQt5.QtGui import QIcon, QFont, QPixmap
 from PyQt5.QtWidgets import (QGridLayout, QLabel, QPushButton,  QLineEdit, QFileDialog,
                              QMainWindow, QDialog, QHBoxLayout, QWidget, QTextEdit,QComboBox,QDockWidget, QAction
                             )
-from PyQt5.QtCore import Qt, QThread
+from PyQt5.QtCore import Qt, QThread, QSize
 
 from winotify import Notification
 
@@ -37,6 +37,17 @@ class AppMainWindow(QMainWindow):
                     "copy":"/img/copy.png",
                     "fontSize":"/img/fontSize.png",
                     "serialPort":"/img/serialPort.png",
+                    "stats":"/img/stats.png",
+                    "circularClock":"/img/circularCLock.png",
+                    "clk":"/img/clk.png",
+                    "version":"/img/version.png",
+                    "powerOn":"/img/powerOn.png",
+                    "powerOff":"/img/powerOff.png",
+                    "refresh":"/img/refresh.png",
+                    "ram":"/img/ram.png",
+                    "freq":"/img/freq.png",
+                    "setTime":"/img/setTime.png",
+                    "getTime":"/img/getTime.png",
                 }
     styles = {
                 "button":"""
@@ -199,7 +210,7 @@ class AppMainWindow(QMainWindow):
                             }
                          """,
                 }
-    buttonFontSize = 10
+    buttonFontSize = 12
     notiSoundPath = "audio/notification.wav"
 
     def __init__(self):

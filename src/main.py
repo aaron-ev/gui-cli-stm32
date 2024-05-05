@@ -28,7 +28,7 @@ import serial.tools.list_ports
 class GuiCli(AppMainWindow):
     appVersion = {'major': '1', 'minor':'0'}
     supportedBaudarates = ['9600', '115200']
-    buttonSize = (250,30)
+    buttonSize = (220, 35)
     defaultFrameStyle = "QFrame { background-color: #1f1f1f; border-radius: 10px; border: 2px solid #333; }"
     defaultLabelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
     defaultControlFrameSize = 480
@@ -207,7 +207,7 @@ class GuiCli(AppMainWindow):
                                                             self.slotConnectDisconnect,
                                                             self.buttonsFont,
                                                             self.appRootPath + self.iconPaths['serialPort'], \
-                                                            None,
+                                                            self.buttonSize,
                                                             self.styles['button']
                                                           )
         self.layoutLog.addWidget(labelSerialConfig, 0, 0, 1, -1)
@@ -239,60 +239,60 @@ class GuiCli(AppMainWindow):
         buttonPinON = self.aWidgets.newButton("On",
                                             self.slotButtonOn,
                                             self.buttonsFont,
-                                            self.appRootPath + self.iconPaths['serialPort'],
-                                            None,
+                                            self.appRootPath + self.iconPaths['powerOn'],
+                                            self.buttonSize,
                                             self.styles['button']
                                             )
         # Button: Set to OFF
         buttonPinOff= self.aWidgets.newButton("Off",
                                             self.slotButtonOff,
                                             self.buttonsFont,
-                                            self.appRootPath + self.iconPaths['serialPort'],
-                                            None,
+                                            self.appRootPath + self.iconPaths['powerOff'],
+                                            self.buttonSize,
                                             self.styles['button']
                                             )
         # Button: Read from GPIO pin
         buttonReadPin = self.aWidgets.newButton("Read pin",
                                             self.slotButtonReadPin,
                                             self.buttonsFont,
-                                            self.appRootPath + self.iconPaths['serialPort'],
-                                            None,
+                                            self.appRootPath + self.iconPaths['refresh'],
+                                            self.buttonSize,
                                             self.styles['button']
                                             )
         # Button: Get the project version
         buttonVersion = self.aWidgets.newButton("Version",
                                             self.slotVersion,
                                             self.buttonsFont,
-                                            self.appRootPath + self.iconPaths['serialPort'],
-                                            None,
+                                            self.appRootPath + self.iconPaths['version'],
+                                            self.buttonSize,
                                             self.styles['button']
                                             )
         buttonHelp = self.aWidgets.newButton("Help",
                                             self.slotHelp,
                                             self.buttonsFont,
-                                            self.appRootPath + self.iconPaths['serialPort'],
-                                            None,
+                                            self.appRootPath + self.iconPaths['info'],
+                                            self.buttonSize,
                                             self.styles['button']
                                             )
         buttonHeap = self.aWidgets.newButton("Heap",
                                             self.slotHeap,
                                             self.buttonsFont,
-                                            self.appRootPath + self.iconPaths['serialPort'],
-                                            None,
+                                            self.appRootPath + self.iconPaths['ram'],
+                                            self.buttonSize,
                                             self.styles['button']
                                             )
         buttonTicks = self.aWidgets.newButton("Ticks",
                                             self.slotTicks,
                                             self.buttonsFont,
-                                            self.appRootPath + self.iconPaths['serialPort'],
-                                            None,
+                                            self.appRootPath + self.iconPaths['freq'],
+                                            self.buttonSize,
                                             self.styles['button']
                                             )
         buttonClk = self.aWidgets.newButton("Clock",
                                             self.slotClk,
                                             self.buttonsFont,
-                                            self.appRootPath + self.iconPaths['serialPort'],
-                                            None,
+                                            self.appRootPath + self.iconPaths['clk'],
+                                            self.buttonSize,
                                             self.styles['button']
                                             )
         self.textRtcHr = self.aWidgets.newLine(12)
@@ -303,15 +303,15 @@ class GuiCli(AppMainWindow):
         buttonSetTime = self.aWidgets.newButton("Set time",
                                             self.slotRtcSetTime,
                                             self.buttonsFont,
-                                            self.appRootPath + self.iconPaths['serialPort'],
-                                            None,
+                                            self.appRootPath + self.iconPaths['setTime'],
+                                            self.buttonSize,
                                             self.styles['button']
                                             )
         buttonGetTime = self.aWidgets.newButton("Get time",
                                             self.slotRtcGetTime,
                                             self.buttonsFont,
-                                            self.appRootPath + self.iconPaths['serialPort'],
-                                            None,
+                                            self.appRootPath + self.iconPaths['getTime'],
+                                            self.buttonSize,
                                             self.styles['button']
                                             )
 
