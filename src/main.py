@@ -151,7 +151,11 @@ class GuiCli(AppMainWindow):
         self.textBoxLog.setFont(font)
 
     def actionHelp(self):
-        self.writeToLog("Not implemented yet\n")
+        self.writeToLog(f'\nApp version v{self.appVersion["major"]}.{self.appVersion["minor"]}\n'
+                        f'Author: Aaron Escoboza\n'
+                        f'Github: https://github.com/aaron-ev\n',
+                        'yellow'
+                        )
 
     def clearLogQueue(self):
         while not self.logQueue:
