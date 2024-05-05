@@ -310,15 +310,15 @@ class GuiCli(AppMainWindow):
         self.layoutFrameControl.addWidget(buttonSetTime, 10, 0, 1, 2)
         self.layoutFrameControl.addWidget(buttonGetTime, 10, 2, 1, 2)
 
-    def change_border_color(self, css_string, new_color):
-        border_index = css_string.find("border:")
+    def updateBorderColor(self, style, hexBorderColor):
+        border_index = style.find("border:")
         if border_index != -1:
-            hash_index = css_string.find("#", border_index)
+            hash_index = style.find("#", border_index)
             if hash_index != -1:
-                color_substring = css_string[hash_index:hash_index + 7]
-                new_css_string = css_string.replace(color_substring, new_color)
-                return new_css_string
-        return css_string
+                color_substring = style[hash_index:hash_index + 7]
+                new_style = style.replace(color_substring, hexBorderColor)
+                return new_style
+        return style
 
     def slotRtcSetTime(self):
         hr = self.textRtcHr.text()
@@ -477,16 +477,18 @@ class GuiCli(AppMainWindow):
                 self.buttonConnectDisconnect.setText("Start monitoring")
                 self.writeToLog(f'Disconnected from {portName}\n', 'yellow')
 
+                # Update button border  color
                 self.prevStyle = self.buttonConnectDisconnect.styleSheet()
-                newStyle = self.change_border_color(self.prevStyle, "#555555")
+                newStyle = self.updateBorderColor(self.prevStyle, "#555555")
                 self.buttonConnectDisconnect.setStyleSheet(newStyle)
             else:
                 self.micro.open(portName, baud)
                 self.writeToLog(f'Connected to {portName}\n', 'green')
                 self.buttonConnectDisconnect.setText("Stop monitoring")
 
+                # Update button border  color
                 self.prevStyle = self.buttonConnectDisconnect.styleSheet()
-                newStyle = self.change_border_color(self.prevStyle, "#77DD77")
+                newStyle = self.updateBorderColor(self.prevStyle, "#77DD77")
                 self.buttonConnectDisconnect.setStyleSheet(newStyle)
         except Exception as e:
             self.showErrorMessage(f'Error {e}')
