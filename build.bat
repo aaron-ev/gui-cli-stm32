@@ -25,5 +25,3 @@ del %currentDir%\*.spec
 
 copy %currentDir%\%mainFileName%.exe %currentDir%\%executableName%.exe
 del %currentDir%\%mainFileName%.exe
-
-pause

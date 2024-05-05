@@ -60,6 +60,8 @@ class GuiCli(AppMainWindow):
         self.initLogSection()
         self.initControlSection()
 
+        self.writeToLog("\t\tWelcome to Micro CLI\n\n", 'green')
+        self.writeToLog("\t\t<Ready to start, select a serial port>\n", 'yellow')
         # Initialize event loop by calling show method
         self.show()
 
@@ -378,10 +380,6 @@ class GuiCli(AppMainWindow):
         except Exception as e:
             self.showErrorMessage(f'Error: {e}')
 
-        self.prevStyle = self.buttonConnectDisconnect.styleSheet()
-        newStyle = self.change_border_color(self.prevStyle, "#77DD77")
-        self.buttonConnectDisconnect.setStyleSheet(newStyle)
-
     def slotButtonOff(self):
         gpio = self.comboBoxGpios.currentText()
         pin = self.comboBoxPins.currentText()
@@ -389,11 +387,6 @@ class GuiCli(AppMainWindow):
             self.micro.writePin(gpio, pin, False)
         except Exception as e:
             self.showErrorMessage(f'Error: {e}')
-        self.buttonConnectDisconnect.setStyleSheet(self.prevStyle)
-
-        self.prevStyle = self.buttonConnectDisconnect.styleSheet()
-        newStyle = self.change_border_color(self.prevStyle, "#555555")
-        self.buttonConnectDisconnect.setStyleSheet(newStyle)
 
     def centerWindow(self):
         # Get the geometry of the screen
@@ -489,7 +482,7 @@ class GuiCli(AppMainWindow):
                 self.buttonConnectDisconnect.setStyleSheet(newStyle)
             else:
                 self.micro.open(portName, baud)
-                self.writeToLog(f'Connected to {portName}\n', 'yellow')
+                self.writeToLog(f'Connected to {portName}\n', 'green')
                 self.buttonConnectDisconnect.setText("Stop monitoring")
 
                 self.prevStyle = self.buttonConnectDisconnect.styleSheet()
