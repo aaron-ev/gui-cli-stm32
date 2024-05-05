@@ -1,6 +1,6 @@
 from PyQt5.QtGui import QIcon, QFont, QPixmap
 from PyQt5.QtWidgets import (QGridLayout, QLabel, QPushButton,  QLineEdit, QFileDialog,
-                             QMainWindow, QDialog, QHBoxLayout, QWidget, QTextEdit,QComboBox,QDockWidget
+                             QMainWindow, QDialog, QHBoxLayout, QWidget, QTextEdit,QComboBox,QDockWidget, QAction
                             )
 from PyQt5.QtCore import Qt, QThread
 
@@ -216,7 +216,7 @@ class AWidgets():
                         QLineEdit {
                         background-color: #2E2E2E; /* Dark gray background */
                         color: white; /* Text color */
-                        border: 2px solid #4a2469;
+                        border: 2px solid #555555;
                         border-radius: 5px; /* Rounded corners */
                         padding: 5px 10px; /* Padding */
                         }
@@ -233,7 +233,7 @@ class AWidgets():
     def __init__(self):
         pass
 
-    def newLine(self, pointSize, bg = 'black', color = 'black '):
+    def newLine(self, pointSize, bg = 'black', color = 'black'):
         font = QFont()
         font.setFamily('Helvetica')
         font.setPointSize(pointSize)
@@ -324,4 +324,15 @@ class AWidgets():
         if style is not None:
             label.setStyleSheet(style)
         return label
+
+    def newAction(self, parent, text = None, iconPath = None, slot = None):
+        if text is not None:
+            action = QAction(text, parent)
+        else:
+            action = QAction(parent)
+        if iconPath is not None:
+            action.setIcon(QIcon(iconPath))
+        if slot is not None:
+            action.triggered.connect(slot)
+        return action
 

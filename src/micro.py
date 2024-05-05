@@ -10,6 +10,7 @@ class Micro():
             'version':"version\n",
             'stats':"stats\n",
             'help':"help\n",
+            'rtcTime':"rtc-g\n",
             }
 
     def __init__(self, callbackDataRead):
@@ -65,3 +66,10 @@ class Micro():
 
     def isOpen(self):
         return self.serialThread.isOpen()
+
+    def getRtcTime(self):
+        self.serialThread.write(self.cmds['rtcTime'])
+
+    def setRtcTime(self, hr, min, s = 0):
+        cmd = f'rtc-s {hr} {min} {s}'
+        self.serialThread.write(cmd)

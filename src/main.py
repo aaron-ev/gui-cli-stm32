@@ -1,6 +1,5 @@
 """
     Author: Aaron Escoboza
-    User: escoaa1
     Description:  GUI application to drive an STM32 microcontroller
 """
 
@@ -20,8 +19,8 @@ import subprocess
 from appClasses import AppMainWindow, AWidgets
 from micro import Micro
 
-APP_WIDTH = 1020
-APP_HIGHT = 420
+APP_WIDTH = 1080
+APP_HIGHT = 520
 
 import serial
 import serial.tools.list_ports
@@ -32,12 +31,14 @@ class GuiCli(AppMainWindow):
     buttonSize = (250,30)
     defaultFrameStyle = "QFrame { background-color: #1f1f1f; border-radius: 10px; border: 2px solid #333; }"
     defaultLabelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
-    defaultControlFrameSize = 275
+    defaultControlFrameSize = 480
     defaultLogFrameSize = 400
     labelPointSize = 12
+    defaultToolbarBg = "#1f1f1f"
+    defaultToolbarColor = "white"
 
     def __init__(self, title, w, h):
-        super().__init__() # Allows the use of abstract class to work
+        super().__init__()
         self.micro = Micro(callbackDataRead = self.callbackMicroReadData)
         self.appRootPath = os.getcwd()
         self.initMainWindow(self.appRootPath, title, w, h)
@@ -49,14 +50,91 @@ class GuiCli(AppMainWindow):
         # Layouts
         self.initLayouts()
 
+        # Menu bar
+        self.initMenuBar()
+
+        # Toolbar
+        self.initToolBar()
+
         # General widgets
         self.initLogSection()
         self.initControlSection()
-        # Comboboxes
-        # self.initComboBoxes()
 
         # Initialize event loop by calling show method
         self.show()
+
+    def initMenuBar(self):
+        menuBar = QMenuBar()
+        # Set default style
+        menuBar.setStyleSheet(self.styles['menuBar'])
+
+        # Create bar options
+        menuBarHelp = menuBar.addMenu("&Help")
+
+        # Create actions for help
+        infoAction = self.aWidgets.newAction(self, "&Info", self.appRootPath + self.iconPaths['info'], self.actionHelp)
+
+        # Add all actions to the menubar
+        menuBarHelp.addAction(infoAction)
+
+        # Set menu bar to the main window
+        self.setMenuBar(menuBar)
+
+    def actionInfo(self):
+        self.writeToLog("Info not implemented yet\n")
+
+    def initToolBar(self):
+        toolbar = QToolBar()
+        iconSize = 30
+        toolbar.setIconSize(QSize(iconSize, iconSize))
+        toolbar.setStyleSheet("QToolBar QToolButton:disabled { color: inherit; }")
+
+        # Create actions for saving the log
+        actionSaveLog = self.aWidgets.newAction(self, "&Save log", self.appRootPath + self.iconPaths['save'], self.actionSaveLog)
+        actionSaveLog.setToolTip("<font color='back'>Save logs to a file</font>")
+
+        # Create actions for general settings
+        actionSettings = self.aWidgets.newAction(self, "&Settings", self.appRootPath + self.iconPaths['settings'], self.actionSettings)
+        actionSettings.setToolTip("<font color='back'>Settings</font>")
+
+        spinBoxLogFontSize = QSpinBox(self)
+        spinBoxLogFontSize.setMinimumWidth(65)
+        spinBoxLogFontSize.setMinimumHeight(25)
+        spinBoxLogFontSize.setMinimum(8)
+        spinBoxLogFontSize.setMaximum(24)
+        spinBoxLogFontSize.setValue(10)
+        spinBoxLogFontSize.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        spinBoxLogFontSize.valueChanged.connect(self.slotSpinBoxLogValueChanged)
+
+        iconSpinBoxForLogFontSize = QIcon(self.iconPaths["fontSize"])
+        actionChangeLogFontSize = QWidgetAction(self)
+        actionChangeLogFontSize.setDefaultWidget(spinBoxLogFontSize)
+        actionFontSize = self.aWidgets.newAction(self, "Font size", self.appRootPath + self.iconPaths['fontSize'], None)
+
+        # Add all actions to the toolbar
+        toolbar.addAction(actionSaveLog)
+        toolbar.addAction(actionSettings)
+        toolbar.addAction(actionChangeLogFontSize)
+        toolbar.addAction(actionFontSize)
+
+        toolbar.setStyleSheet(f'background-color: {self.defaultToolbarBg} ; color: {self.defaultToolbarColor}')
+        # toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
+        toolbar.setMovable(False)
+
+        self.addToolBar(toolbar)
+
+    def actionSaveLog(self):
+        self.writeToLog("Save log not implemented yet:)")
+    def actionSettings(self):
+        self.writeToLog("Settings window not implemented yet:)")
+
+    def slotSpinBoxLogValueChanged(self, newValue):
+        font = self.textBoxLog.font()
+        font.setPointSize(newValue)
+        self.textBoxLog.setFont(font)
+
+    def actionHelp(self):
+        self.writeToLog("Not implemented yet\n")
 
     def callbackMicroReadData(self, data):
         self.writeToLog(data)
@@ -110,8 +188,12 @@ class GuiCli(AppMainWindow):
         self.layoutLog.addWidget(self.dockLog, 3, 0, 1, -1)
 
     def initControlSection(self):
-        # labelGpio = self.aWidgets.newLabel("GPIOx PORT", self.labelPointSize, self.defaultLabelStyle)
-        # labelPinNumber = self.aWidgets.newLabel("Pin number", self.labelPointSize, self.defaultLabelStyle)
+        labelTitleGpioRW = self.aWidgets.newLabel("GPIO Write/Read", self.labelPointSize, self.defaultLabelStyle)
+        labelTitleGeneralInfo = self.aWidgets.newLabel("General information ", self.labelPointSize, self.defaultLabelStyle)
+        labelTitleRtc = self.aWidgets.newLabel("RTC", self.labelPointSize, self.defaultLabelStyle)
+        labelRtcHr = self.aWidgets.newLabel("Hr", self.labelPointSize, self.defaultLabelStyle)
+        labelRctMin = self.aWidgets.newLabel("Min", self.labelPointSize, self.defaultLabelStyle)
+
 
         # Combobox: GPIOS
         self.comboBoxGpios = self.aWidgets.newComboBox()
@@ -125,7 +207,7 @@ class GuiCli(AppMainWindow):
             self.comboBoxPins.addItem(str(pinNumber).upper())
 
         # Button: Set to ON
-        buttonPinON = self.aWidgets.newButton("ON",
+        buttonPinON = self.aWidgets.newButton("On",
                                             self.slotButtonOn,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['serialPort'],
@@ -133,8 +215,16 @@ class GuiCli(AppMainWindow):
                                             self.styles['button']
                                             )
         # Button: Set to OFF
-        buttonPinOff= self.aWidgets.newButton("OFF",
+        buttonPinOff= self.aWidgets.newButton("Off",
                                             self.slotButtonOff,
+                                            self.buttonsFont,
+                                            self.appRootPath + self.iconPaths['serialPort'],
+                                            None,
+                                            self.styles['button']
+                                            )
+        # Button: Read from GPIO pin
+        buttonReadPin = self.aWidgets.newButton("Read pin",
+                                            self.slotButtonReadPin,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['serialPort'],
                                             None,
@@ -155,40 +245,100 @@ class GuiCli(AppMainWindow):
                                             None,
                                             self.styles['button']
                                             )
-        buttonHeap = self.aWidgets.newButton("heap",
+        buttonHeap = self.aWidgets.newButton("Heap",
                                             self.slotHeap,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['serialPort'],
                                             None,
                                             self.styles['button']
                                             )
-        buttonTicks = self.aWidgets.newButton("ticks",
+        buttonTicks = self.aWidgets.newButton("Ticks",
                                             self.slotTicks,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['serialPort'],
                                             None,
                                             self.styles['button']
                                             )
-        buttonClk = self.aWidgets.newButton("CLK",
+        buttonClk = self.aWidgets.newButton("Clock",
                                             self.slotClk,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['serialPort'],
                                             None,
                                             self.styles['button']
                                             )
+        self.textRtcHr = self.aWidgets.newLine(12)
+        # self.textRtcHr.setFixedWidth(70)
+        self.textRtcMin = self.aWidgets.newLine(12)
+        # self.textRtcMin.setFixedWidth(70)
 
-        # self.layoutFrameControl.addWidget(labelGpio, 0, 0)
-        # self.layoutFrameControl.addWidget(labelPinNumber, 0, 1)
-        self.layoutFrameControl.addWidget(self.comboBoxGpios, 0, 0)
-        self.layoutFrameControl.addWidget(self.comboBoxPins, 0, 1)
-        self.layoutFrameControl.addWidget(buttonPinON, 1, 0)
-        self.layoutFrameControl.addWidget(buttonPinOff, 1, 1)
-        self.layoutFrameControl.addWidget(buttonVersion, 2, 0, 1, -1)
-        self.layoutFrameControl.addWidget(buttonHelp, 3, 0, 1, -1)
-        self.layoutFrameControl.addWidget(buttonHeap, 4, 0, 1, -1)
-        self.layoutFrameControl.addWidget(buttonTicks, 5, 0, 1, -1)
-        self.layoutFrameControl.addWidget(buttonClk, 6, 0, 1, -1)
-        self.layoutFrameControl.addWidget(buttonVersion, 7, 0, 1, -1)
+        buttonSetTime = self.aWidgets.newButton("Set time",
+                                            self.slotRtcSetTime,
+                                            self.buttonsFont,
+                                            self.appRootPath + self.iconPaths['serialPort'],
+                                            None,
+                                            self.styles['button']
+                                            )
+        buttonGetTime = self.aWidgets.newButton("Get time",
+                                            self.slotRtcGetTime,
+                                            self.buttonsFont,
+                                            self.appRootPath + self.iconPaths['serialPort'],
+                                            None,
+                                            self.styles['button']
+                                            )
+
+        self.layoutFrameControl.addWidget(labelTitleGpioRW, 0, 0, 1, -1)
+        self.layoutFrameControl.addWidget(self.comboBoxGpios, 1, 0, 1, 2)
+        self.layoutFrameControl.addWidget(self.comboBoxPins, 1, 2, 1, 2)
+        self.layoutFrameControl.addWidget(buttonPinON, 2, 0, 1, 2)
+        self.layoutFrameControl.addWidget(buttonPinOff, 2, 2, 1, 2)
+        self.layoutFrameControl.addWidget(buttonReadPin, 3, 0, 1, -1)
+        self.layoutFrameControl.addWidget(labelTitleGeneralInfo, 4, 0, 1, -1)
+        self.layoutFrameControl.addWidget(buttonHeap, 5, 0, 1, 2)
+        self.layoutFrameControl.addWidget(buttonTicks, 5, 2, 1, 2)
+
+        self.layoutFrameControl.addWidget(buttonClk, 6, 0, 1, 2)
+        self.layoutFrameControl.addWidget(buttonVersion, 6, 2, 1, 2)
+
+        self.layoutFrameControl.addWidget(buttonHelp, 7, 0, 1, 2)
+        self.layoutFrameControl.addWidget(labelTitleRtc, 8, 0, 1, -1)
+        self.layoutFrameControl.addWidget(labelRtcHr, 9, 0)
+        self.layoutFrameControl.addWidget(self.textRtcHr, 9, 1)
+        self.layoutFrameControl.addWidget(labelRctMin, 9, 2)
+        self.layoutFrameControl.addWidget(self.textRtcMin, 9, 3)
+        self.layoutFrameControl.addWidget(buttonSetTime, 10, 0, 1, 2)
+        self.layoutFrameControl.addWidget(buttonGetTime, 10, 2, 1, 2)
+
+    def change_border_color(self, css_string, new_color):
+        border_index = css_string.find("border:")
+        if border_index != -1:
+            hash_index = css_string.find("#", border_index)
+            if hash_index != -1:
+                color_substring = css_string[hash_index:hash_index + 7]
+                new_css_string = css_string.replace(color_substring, new_color)
+                return new_css_string
+        return css_string
+
+    def slotRtcSetTime(self):
+        hr = self.textRtcHr.text()
+        min = self.textRtcMin.text()
+        try:
+             self.micro.setRtcTime(hr, min)
+        except Exception as e:
+            self.showErrorMessage(f'Error: {e}')
+
+    def slotRtcGetTime(self):
+        try:
+             self.micro.getRtcTime()
+        except Exception as e:
+            self.showErrorMessage(f'Error: {e}')
+
+    def slotButtonReadPin(self):
+        gpio = self.comboBoxGpios.currentText()
+        pin = self.comboBoxPins.currentText()
+        try:
+             self.micro.readPin(gpio, pin)
+        except Exception as e:
+            self.showErrorMessage(f'Error: {e}')
 
     def slotVersion(self):
         try:
@@ -228,6 +378,10 @@ class GuiCli(AppMainWindow):
         except Exception as e:
             self.showErrorMessage(f'Error: {e}')
 
+        self.prevStyle = self.buttonConnectDisconnect.styleSheet()
+        newStyle = self.change_border_color(self.prevStyle, "#77DD77")
+        self.buttonConnectDisconnect.setStyleSheet(newStyle)
+
     def slotButtonOff(self):
         gpio = self.comboBoxGpios.currentText()
         pin = self.comboBoxPins.currentText()
@@ -235,6 +389,11 @@ class GuiCli(AppMainWindow):
             self.micro.writePin(gpio, pin, False)
         except Exception as e:
             self.showErrorMessage(f'Error: {e}')
+        self.buttonConnectDisconnect.setStyleSheet(self.prevStyle)
+
+        self.prevStyle = self.buttonConnectDisconnect.styleSheet()
+        newStyle = self.change_border_color(self.prevStyle, "#555555")
+        self.buttonConnectDisconnect.setStyleSheet(newStyle)
 
     def centerWindow(self):
         # Get the geometry of the screen
@@ -293,7 +452,7 @@ class GuiCli(AppMainWindow):
         # Frame: Frame for all buttons (any kind of control)
         frame = QFrame()
         frame.setStyleSheet(self.defaultFrameStyle)
-        frame.setMinimumWidth(self.defaultControlFrameSize)
+        frame.setMaximumWidth(self.defaultControlFrameSize)
         self.layoutFrameControl = QGridLayout()
         frame.setLayout(self.layoutFrameControl)
         self.gridLayout.addWidget(frame, 0, 0)
@@ -324,10 +483,18 @@ class GuiCli(AppMainWindow):
                 self.micro.close()
                 self.buttonConnectDisconnect.setText("Start monitoring")
                 self.writeToLog(f'Disconnected from {portName}\n', 'yellow')
+
+                self.prevStyle = self.buttonConnectDisconnect.styleSheet()
+                newStyle = self.change_border_color(self.prevStyle, "#555555")
+                self.buttonConnectDisconnect.setStyleSheet(newStyle)
             else:
                 self.micro.open(portName, baud)
                 self.writeToLog(f'Connected to {portName}\n', 'yellow')
                 self.buttonConnectDisconnect.setText("Stop monitoring")
+
+                self.prevStyle = self.buttonConnectDisconnect.styleSheet()
+                newStyle = self.change_border_color(self.prevStyle, "#77DD77")
+                self.buttonConnectDisconnect.setStyleSheet(newStyle)
         except Exception as e:
             self.showErrorMessage(f'Error {e}')
 
