@@ -1,4 +1,4 @@
 
 # Current appearance of the app
 
-![app](/img/currentAppearance.png)
+![app](/img/mainWindow.png)
