@@ -16,10 +16,10 @@ from PyQt5.QtCore import Qt, pyqtSignal, QSettings, QMutex, QWaitCondition, QThr
 from PyQt5.QtGui import QIcon, QFont, QTextCharFormat, QColor, QPixmap
 import subprocess
 
-from appClasses import AppMainWindow, AWidgets
+from appClasses import AppMainWindow, AWidgets, ASettings
 from micro import Micro
 
-APP_WIDTH = 1080
+APP_WIDTH = 1220
 APP_HIGHT = 520
 
 import serial
@@ -143,7 +143,9 @@ class GuiCli(AppMainWindow):
             self.writeToLog(f'\nSaved log to {fileName}\n', 'green')
 
     def actionSettings(self):
-        self.writeToLog("Settings window not implemented yet:)")
+        settingsWindow = ASettings(self.appRootPath, self.iconPaths, self.styles)
+        if settingsWindow.exec_():
+            self.writeToLog("user select yes\n")
 
     def slotSpinBoxLogValueChanged(self, newValue):
         font = self.textBoxLog.font()
@@ -183,7 +185,8 @@ class GuiCli(AppMainWindow):
     #                    START OF INIT FUNCTIONS
     ##3###########################################################
     def initLogSection(self):
-        labelSerialConfig = self.aWidgets.newLabel("Serial configuration", self.labelPointSize, self.defaultLabelStyle)
+        labelPort = self.aWidgets.newLabel("Port", self.labelPointSize, self.defaultLabelStyle)
+        labelBaudRate = self.aWidgets.newLabel("Baud rate", self.labelPointSize, self.defaultLabelStyle)
 
         # Create combobox for sandboxes
         self.comboBoxComPorts = self.aWidgets.newComboBox(self.slotComboBoxComPorts)
@@ -198,7 +201,6 @@ class GuiCli(AppMainWindow):
         for baud in self.supportedBaudarates:
             self.comboBoxBaudrates.addItem(baud)
 
-
         # Dock: Dock for any message from serial port
         self.dockLog, self.textBoxLog = self.aWidgets.newDock("Log", "dock")
 
@@ -207,12 +209,13 @@ class GuiCli(AppMainWindow):
                                                             self.slotConnectDisconnect,
                                                             self.buttonsFont,
                                                             self.appRootPath + self.iconPaths['serialPort'], \
-                                                            self.buttonSize,
+                                                            None,
                                                             self.styles['button']
                                                           )
-        self.layoutLog.addWidget(labelSerialConfig, 0, 0, 1, -1)
-        self.layoutLog.addWidget(self.comboBoxComPorts, 1, 0)
-        self.layoutLog.addWidget(self.comboBoxBaudrates, 1, 1)
+        self.layoutLog.addWidget(labelPort, 1, 0)
+        self.layoutLog.addWidget(self.comboBoxComPorts, 1, 1)
+        self.layoutLog.addWidget(labelBaudRate, 1, 2)
+        self.layoutLog.addWidget(self.comboBoxBaudrates, 1, 3)
         self.layoutLog.addWidget(self.buttonConnectDisconnect, 2, 0, 1, -1)
         self.layoutLog.addWidget(self.dockLog, 3, 0, 1, -1)
 

@@ -347,3 +347,129 @@ class AWidgets():
             action.triggered.connect(slot)
         return action
 
+class ASettings(QDialog):
+    maxSize = (360, 160)
+    newFolderBsClient = None
+    newCompilationResultsDir = None
+    defaultLabelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
+    labelPointSize = 12
+
+    def initWindow(self, appRootPath, iconPaths, styles):
+        self.setWindowTitle("Settings")
+        self.setStyleSheet(styles['dialog'])
+        self.setWindowIcon(QIcon(appRootPath + iconPaths['settings']))
+        self.setFixedSize(self.maxSize[0], self.maxSize[1])
+
+    def initFonts(self):
+        self.buttonsFont = QFont()
+        self.buttonsFont.setFamily('Helvetica')
+        self.buttonsFont.setPointSize(10)
+
+    def __init__(self, appRootPath, iconPaths, styles):
+        super().__init__()
+        self.iconPaths = iconPaths
+        self.appRootPath = appRootPath
+        self.initFonts()
+        self.initWindow(appRootPath, iconPaths, styles)
+        # self.config = config
+        aWidgets = AWidgets()
+        buttonApply = QPushButton("&Apply")
+        buttonCancel = QPushButton("&Cancel")
+        buttonApply.setFixedWidth(140)
+        buttonCancel.setFixedWidth(140)
+        buttonApply.clicked.connect(self.apply)
+        buttonCancel.clicked.connect(self.cancel)
+
+        # Create labels
+        labelSerialConfig = aWidgets.newLabel("Serial configuration", self.labelPointSize, self.defaultLabelStyle)
+        labelDataLen = aWidgets.newLabel("Data length", self.labelPointSize, self.defaultLabelStyle)
+        labelStopBits = aWidgets.newLabel("Stop bits", self.labelPointSize, self.defaultLabelStyle)
+
+        self.comboboxDataLen = aWidgets.newComboBox()
+        self.comboboxStopBits = aWidgets.newComboBox()
+
+        # Set supported data lengths
+        self.comboboxDataLen.addItem("8")
+        self.comboboxDataLen.addItem("7")
+
+        # Set supported stop bits
+        self.comboboxStopBits.addItem("1")
+        self.comboboxStopBits.addItem("2")
+
+        # Initialize notifications for sending on success or failure
+        self.initNotifications()
+        gridLayout = QGridLayout()
+        self.setLayout(gridLayout)
+        # gridLayout.setContentsMargins(10, 10, 1, 1)
+
+        # Create layout and add widgets to it
+        gridLayout.addWidget(labelSerialConfig, 0, 0, 1, -1)
+        gridLayout.addWidget(labelDataLen, 1, 0)
+        gridLayout.addWidget(self.comboboxDataLen, 1, 1)
+        gridLayout.addWidget(labelStopBits, 2, 0)
+        gridLayout.addWidget(self.comboboxStopBits, 2, 1)
+        gridLayout.addWidget(buttonApply, 3, 0)
+        gridLayout.addWidget(buttonCancel, 3, 1)
+
+    def initNotifications(self):
+        pass
+        # # Create label for enable notifications and its on/off image
+        # self.labelNoti = self.createLabel("Enable notifications", 12)
+        # self.notiStateImage = self.createLabel("", 12)
+
+        # # Current size is needed to do a proper scalation
+        # self.notiLabelSize = self.notiStateImage.size()
+
+        # # Map slot to get new mouse event
+        # self.notiStateImage.mousePressEvent = self.updateNotiState
+
+        # # Check if notification value is already saved
+        # regEnableNoti = self.config.read("notification", "isenable").lower()
+        # if regEnableNoti is ["none"]:
+        #     regEnableNoti = "false"
+
+        # # Set new image according to reg state
+        # onImage = self.appRootPath + self.iconPaths['onImage']
+        # offImage = self.appRootPath + self.iconPaths['offImage']
+        # newImage = onImage if regEnableNoti == "true" else offImage
+        # pixmap = QPixmap(newImage)
+        # self.notiStateImage.setPixmap(pixmap.scaled(self.notiLabelSize * 0.1, Qt.KeepAspectRatio, \
+        #                               Qt.SmoothTransformation))
+
+        # # Update local notification reg state
+        # self.notiRegState = regEnableNoti
+
+    def apply(self):
+        # self.saveSettings()
+        self.accept()
+
+    def saveSettings(self):
+        pass
+        # # Save BS client path
+        # if self.newFolderBsClient is not None:
+        #     self.config.write("paths", "bsclient", self.newFolderBsClient)
+
+        # # Save compilation results path
+        # if self.newCompilationResultsDir is not None:
+        #     self.config.write("paths", "compilationresults", self.newCompilationResultsDir)
+
+        # # Save notification enable/disable flag
+        # if self.notiRegState is not None:
+        #     self.config.write("notification", "isenable", self.notiRegState)
+
+    def cancel(self):
+        self.reject()
+
+    def updateNotiState(self, event):
+        if event is not None and event.button() != Qt.LeftButton:
+            return
+
+        if self.notiRegState == "true":
+            self.notiRegState = "false"
+            newImage = self.appRootPath + self.iconPaths["offImage"]
+        else:
+            self.notiRegState = "true"
+            newImage = self.appRootPath + self.iconPaths["onImage"]
+        pixmap = QPixmap(newImage)
+        # scaled_pixmap = pixmap.scaled(self.notificationEnableStateImage.size() * 0.1, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.notiStateImage.setPixmap(pixmap.scaled(self.notiLabelSize * 0.1, Qt.KeepAspectRatio, Qt.SmoothTransformation))
