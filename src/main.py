@@ -60,8 +60,12 @@ class GuiCli(AppMainWindow):
         self.initLogSection()
         self.initControlSection()
 
+        # Create queue for saving log messages
+        self.logQueue = queue.Queue()
+
         self.writeToLog("\t\tWelcome to Micro CLI\n\n", 'green')
         self.writeToLog("\t\t<Ready to start, select a serial port>\n", 'yellow')
+
         # Initialize event loop by calling show method
         self.show()
 
@@ -126,7 +130,18 @@ class GuiCli(AppMainWindow):
         self.addToolBar(toolbar)
 
     def actionSaveLog(self):
-        self.writeToLog("Save log not implemented yet:)")
+        fileName, _ = QFileDialog.getSaveFileName(self, "Save file", "", "Text Files (*.txt)")
+        if fileName:
+            # Copy current log from a queue
+            tmpLogQueue = queue.Queue()
+            for item in self.logQueue.queue:
+                tmpLogQueue.put(item)
+            # Write tmp queue to selected file
+            with open(fileName, 'w') as f:
+                while not tmpLogQueue.empty():
+                    f.write(tmpLogQueue.get())
+            self.writeToLog(f'\nSaved log to {fileName}\n', 'green')
+
     def actionSettings(self):
         self.writeToLog("Settings window not implemented yet:)")
 
@@ -138,8 +153,16 @@ class GuiCli(AppMainWindow):
     def actionHelp(self):
         self.writeToLog("Not implemented yet\n")
 
+    def clearLogQueue(self):
+        while not self.logQueue:
+            self.logQueue.get()
+
     def callbackMicroReadData(self, data):
         self.writeToLog(data)
+        if self.logQueue.full():
+            self.writeToLog("Can't log more data, queue is full\n", 'red')
+        else:
+            self.logQueue.put(data)
 
     def slotComboBoxComPorts(self):
         pass
