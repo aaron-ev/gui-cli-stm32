@@ -130,6 +130,11 @@ class GuiCli(AppMainWindow):
         self.addToolBar(toolbar)
 
     def actionSaveLog(self):
+        # If queue is empty, it doesn't make sense to save a log file
+        if self.logQueue.empty():
+            self.showErrorMessage("No log to save")
+            return
+
         fileName, _ = QFileDialog.getSaveFileName(self, "Save file", "", "Text Files (*.txt)")
         if fileName:
             # Copy current log from a queue
@@ -361,13 +366,13 @@ class GuiCli(AppMainWindow):
         try:
              self.micro.setRtcTime(hr, min)
         except Exception as e:
-            self.showErrorMessage(f'Error: {e}')
+            self.showErrorMessage(f'{e}')
 
     def slotRtcGetTime(self):
         try:
              self.micro.getRtcTime()
         except Exception as e:
-            self.showErrorMessage(f'Error: {e}')
+            self.showErrorMessage(f'{e}')
 
     def slotButtonReadPin(self):
         gpio = self.comboBoxGpios.currentText()
@@ -375,37 +380,37 @@ class GuiCli(AppMainWindow):
         try:
              self.micro.readPin(gpio, pin)
         except Exception as e:
-            self.showErrorMessage(f'Error: {e}')
+            self.showErrorMessage(f'{e}')
 
     def slotVersion(self):
         try:
             self.micro.getVersion()
         except Exception as e:
-            self.showErrorMessage(f'Error: {e}')
+            self.showErrorMessage(f'{e}')
 
     def slotHelp(self):
         try:
             self.micro.help()
         except Exception as e:
-            self.showErrorMessage(f'Error: {e}')
+            self.showErrorMessage(f'{e}')
 
     def slotTicks(self):
         try:
             self.micro.getTicks()
         except Exception as e:
-            self.showErrorMessage(f'Error: {e}')
+            self.showErrorMessage(f'{e}')
 
     def slotClk(self):
         try:
             self.micro.getClk()
         except Exception as e:
-            self.showErrorMessage(f'Error: {e}')
+            self.showErrorMessage(f'{e}')
 
     def slotHeap(self):
         try:
             self.micro.getHeap()
         except Exception as e:
-            self.showErrorMessage(f'Error: {e}')
+            self.showErrorMessage(f'{e}')
 
     def slotButtonOn(self):
         gpio = self.comboBoxGpios.currentText()
@@ -413,7 +418,7 @@ class GuiCli(AppMainWindow):
         try:
              self.micro.writePin(gpio, pin, True)
         except Exception as e:
-            self.showErrorMessage(f'Error: {e}')
+            self.showErrorMessage(f'{e}')
 
     def slotButtonOff(self):
         gpio = self.comboBoxGpios.currentText()
@@ -421,7 +426,7 @@ class GuiCli(AppMainWindow):
         try:
             self.micro.writePin(gpio, pin, False)
         except Exception as e:
-            self.showErrorMessage(f'Error: {e}')
+            self.showErrorMessage(f'{e}')
 
     def centerWindow(self):
         # Get the geometry of the screen
@@ -438,7 +443,7 @@ class GuiCli(AppMainWindow):
         self.centerWindow()
         # self.setMinimumSize(w, h)
         self.setFixedSize(w, h)
-        self.setWindowTitle(title + f" v{self.appVersion['major']}.{self.appVersion['minor']} BETA underdevelopment")
+        self.setWindowTitle(title + f" v{self.appVersion['major']}.{self.appVersion['minor']}")
         self.setWindowIcon(QIcon(appRootPath + self.iconPaths["mainIcon"]))
         self.setStyleSheet(self.styles['mainWindow'])
 
@@ -530,13 +535,13 @@ class GuiCli(AppMainWindow):
                 newStyle = self.updateBorderColor(self.prevStyle, "#77DD77")
                 self.buttonConnectDisconnect.setStyleSheet(newStyle)
         except Exception as e:
-            self.showErrorMessage(f'Error {e}')
+            self.showErrorMessage(f'Error{e}')
 
     def slotButtonDisconnectPort(self):
         try:
             self.micro.close()
         except Exception as e:
-            print(f'Error {e}')
+            print(f'Error{e}')
 
         self.writeToLog("Disconnected\n", 'yellow')
 
@@ -556,6 +561,7 @@ class GuiCli(AppMainWindow):
         icon = QMessageBox.Icon(QMessageBox.Icon.Critical)
         msgBox = QMessageBox()
         msgBox.setIcon(icon)
+        msgBox.setWindowIcon(QIcon(self.appRootPath + self.iconPaths["mainIcon"]))
         msgBox.setWindowTitle("Error")
         msgBox.setText(text)
         # Set style sheet for the message box
@@ -571,7 +577,30 @@ class GuiCli(AppMainWindow):
         # Show the message box
         msgBox.exec_()
 
+    def showWarningMessage(self, text, title = None):
+        # Create a message box with information icon
+        icon = QMessageBox.Icon(QMessageBox.Icon.Warning)
+        msgBox = QMessageBox()
+        msgBox.setIcon(icon)
+        msgBox.setWindowIcon(QIcon(self.appRootPath + self.iconPaths["mainIcon"]))
+        if title is not None:
+            msgBox.setWindowTitle(title)
+        else:
+            msgBox.setWindowTitle("Warning")
+        msgBox.setText(text)
+        # Set style sheet for the message box
+        msgBox.setStyleSheet("""
+            QMessageBox {
+                background-color: #F0F0F0; /* Light gray background */
+                color: black; /* Text color */
+                border: 2px solid #00BFFF; /* Border color */
+            }
+        """)
+        # Add buttons to the message box
+        msgBox.addButton(QMessageBox.Ok)
+        # Show the message box
+        msgBox.exec_()
 if __name__ == '__main__':
     app = QApplication([])
-    codeLink = GuiCli("GUI CLI", APP_WIDTH, APP_HIGHT)
+    codeLink = GuiCli("MicroCLI", APP_WIDTH, APP_HIGHT)
     app.exec_()
