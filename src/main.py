@@ -27,7 +27,6 @@ import serial.tools.list_ports
 
 class GuiCli(AppMainWindow):
     appVersion = {'major': '1', 'minor':'0'}
-    supportedBaudarates = ['9600', '115200']
     buttonSize = (220, 35)
     defaultFrameStyle = "QFrame { background-color: #1f1f1f; border-radius: 10px; border: 2px solid #333; }"
     defaultLabelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
@@ -198,8 +197,10 @@ class GuiCli(AppMainWindow):
             self.comboBoxComPorts.addItem(port.description)
 
         # Update combobox with supported baudrates
-        for baud in self.supportedBaudarates:
+        for baud in self.micro.supportedBaudarates:
             self.comboBoxBaudrates.addItem(baud)
+        # Set 9600 as default since it is the most common baud rate
+        self.comboBoxBaudrates.setCurrentText('9600')
 
         # Dock: Dock for any message from serial port
         self.dockLog, self.textBoxLog = self.aWidgets.newDock("Log", "dock")
