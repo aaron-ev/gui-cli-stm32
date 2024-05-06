@@ -20,13 +20,13 @@ class ThreadSerialDev(QThread):
         """ List all available serial ports """
         return serial.tools.list_ports.comports()
 
-    def open(self, port, baudrate):
+    def open(self, port, baudrate, dataLen, stopBits):
         """ Open a serial port """
         self.serialDev = serial.Serial(port,
                                        baudrate = baudrate,
-                                       bytesize = 8,
+                                       bytesize = dataLen,
                                        parity = 'N',
-                                       stopbits = 1,
+                                       stopbits = stopBits,
                                        timeout = 1
                                        )
 

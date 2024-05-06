@@ -46,6 +46,7 @@ class GuiCli(AppMainWindow):
         self.buttonsFont = QFont()
         self.buttonsFont.setFamily('Helvetica')
         self.buttonsFont.setPointSize(self.buttonFontSize)
+        self.settings = ASettings(self.appRootPath, self.iconPaths, self.styles)
 
         # Layouts
         self.initLayouts()
@@ -143,8 +144,7 @@ class GuiCli(AppMainWindow):
             self.writeToLog(f'\nSaved log to {fileName}\n', 'green')
 
     def actionSettings(self):
-        settingsWindow = ASettings(self.appRootPath, self.iconPaths, self.styles)
-        if settingsWindow.exec_():
+        if self.settings.exec_():
             self.writeToLog("user select yes\n")
 
     def slotSpinBoxLogValueChanged(self, newValue):
@@ -506,6 +506,9 @@ class GuiCli(AppMainWindow):
             self.showErrorMessage("Invalid port name")
 
         baud = self.comboBoxBaudrates.currentText()
+        dataLen = self.settings.getSerialDataLen()
+        stopBits = self.settings.getSerialStopBits()
+
         try:
             if self.micro.isOpen():
                 self.micro.close()
@@ -517,7 +520,7 @@ class GuiCli(AppMainWindow):
                 newStyle = self.updateBorderColor(self.prevStyle, "#555555")
                 self.buttonConnectDisconnect.setStyleSheet(newStyle)
             else:
-                self.micro.open(portName, baud)
+                self.micro.open(portName, baud, dataLen, stopBits)
                 self.writeToLog(f'Connected to {portName}\n', 'green')
                 self.buttonConnectDisconnect.setText("Stop monitoring")
 

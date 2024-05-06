@@ -391,10 +391,12 @@ class ASettings(QDialog):
         # Set supported data lengths
         self.comboboxDataLen.addItem("8")
         self.comboboxDataLen.addItem("7")
+        self.datLenPrevState = self.comboboxDataLen.currentText()
 
         # Set supported stop bits
         self.comboboxStopBits.addItem("1")
         self.comboboxStopBits.addItem("2")
+        self.stopBitsPrevState = self.comboboxStopBits.currentText()
 
         # Initialize notifications for sending on success or failure
         self.initNotifications()
@@ -458,6 +460,9 @@ class ASettings(QDialog):
         #     self.config.write("notification", "isenable", self.notiRegState)
 
     def cancel(self):
+        # Restore previous state
+        self.comboboxDataLen.setCurrentText(self.datLenPrevState)
+        self.comboboxStopBits.setCurrentText(self.stopBitsPrevState)
         self.reject()
 
     def updateNotiState(self, event):
@@ -473,3 +478,9 @@ class ASettings(QDialog):
         pixmap = QPixmap(newImage)
         # scaled_pixmap = pixmap.scaled(self.notificationEnableStateImage.size() * 0.1, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.notiStateImage.setPixmap(pixmap.scaled(self.notiLabelSize * 0.1, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+    def getSerialDataLen(self):
+        return self.comboboxDataLen.currentText()
+
+    def getSerialStopBits(self):
+        return self.comboboxStopBits.currentText()

@@ -58,8 +58,8 @@ class Micro():
     def getClk(self):
         self.serialThread.write(self.cmds['clk'])
 
-    def open(self, serialDev, baud):
-        self.serialThread.open(serialDev, baud)
+    def open(self, serialDev, baud, dataLen, stopBits):
+        self.serialThread.open(serialDev, baud, int(dataLen), int(stopBits))
 
     def close(self):
         self.serialThread.close()
