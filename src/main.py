@@ -20,7 +20,7 @@ from appClasses import AppMainWindow, AWidgets, ASettings
 from micro import Micro
 
 APP_WIDTH = 1220
-APP_HIGHT = 520
+APP_HIGHT = 550
 
 import serial
 import serial.tools.list_ports
@@ -221,6 +221,8 @@ class GuiCli(AppMainWindow):
 
     def initControlSection(self):
         labelTitleGpioRW = self.aWidgets.newLabel("GPIO Write/Read", self.labelPointSize, self.defaultLabelStyle)
+        labelGpio= self.aWidgets.newLabel("GPIO", self.labelPointSize, self.defaultLabelStyle)
+        labelPin = self.aWidgets.newLabel("Pin", self.labelPointSize, self.defaultLabelStyle)
         labelTitleGeneralInfo = self.aWidgets.newLabel("General information ", self.labelPointSize, self.defaultLabelStyle)
         labelTitleRtc = self.aWidgets.newLabel("RTC", self.labelPointSize, self.defaultLabelStyle)
         labelRtcHr = self.aWidgets.newLabel("Hr", self.labelPointSize, self.defaultLabelStyle)
@@ -319,8 +321,10 @@ class GuiCli(AppMainWindow):
                                             )
 
         self.layoutFrameControl.addWidget(labelTitleGpioRW, 0, 0, 1, -1)
-        self.layoutFrameControl.addWidget(self.comboBoxGpios, 1, 0, 1, 2)
-        self.layoutFrameControl.addWidget(self.comboBoxPins, 1, 2, 1, 2)
+        self.layoutFrameControl.addWidget(labelGpio, 1, 0)
+        self.layoutFrameControl.addWidget(self.comboBoxGpios, 1, 1)
+        self.layoutFrameControl.addWidget(labelPin, 1, 2)
+        self.layoutFrameControl.addWidget(self.comboBoxPins, 1, 3)
         self.layoutFrameControl.addWidget(buttonPinON, 2, 0, 1, 2)
         self.layoutFrameControl.addWidget(buttonPinOff, 2, 2, 1, 2)
         self.layoutFrameControl.addWidget(buttonReadPin, 3, 0, 1, -1)
@@ -431,7 +435,8 @@ class GuiCli(AppMainWindow):
     def initMainWindow(self, appRootPath, title, w, h):
         """ Set default main windows properties  """
         self.centerWindow()
-        self.setMinimumSize(w, h)
+        # self.setMinimumSize(w, h)
+        self.setFixedSize(w, h)
         self.setWindowTitle(title + f" v{self.appVersion['major']}.{self.appVersion['minor']} BETA underdevelopment")
         self.setWindowIcon(QIcon(appRootPath + self.iconPaths["mainIcon"]))
         self.setStyleSheet(self.styles['mainWindow'])
