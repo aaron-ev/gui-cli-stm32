@@ -13,6 +13,7 @@ class Micro():
             'stats':"stats\n",
             'help':"help\n",
             'rtcTime':"rtc-g\n",
+            'stats':"stats\n",
             }
 
     def __init__(self, callbackDataRead):
@@ -59,6 +60,9 @@ class Micro():
 
     def getClk(self):
         self.serialThread.write(self.cmds['clk'])
+
+    def getStats(self):
+        self.serialThread.write(self.cmds['stats'])
 
     def open(self, serialDev, baud, dataLen, stopBits):
         self.serialThread.open(serialDev, baud, int(dataLen), int(stopBits))

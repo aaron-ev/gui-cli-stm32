@@ -25,7 +25,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationTool
 from matplotlib.figure import Figure
 
 APP_WIDTH = 820
-APP_HIGHT = 560
+APP_HIGHT = 620
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
@@ -43,7 +43,7 @@ class GuiCli(AppMainWindow):
     labelPointSize = 12
     defaultToolbarBg = "#1f1f1f"
     defaultToolbarColor = "white"
-    textLogHightSize = 160
+    textLogHightSize = 220
 
     def __init__(self, title, w, h):
         super().__init__()
@@ -372,10 +372,15 @@ class GuiCli(AppMainWindow):
                                             self.buttonSize,
                                             self.styles['button']
                                             )
+        buttonStats = self.aWidgets.newButton("Stats",
+                                            self.slotStats,
+                                            self.buttonsFont,
+                                            self.appRootPath + self.iconPaths['stats'],
+                                            self.buttonSize,
+                                            self.styles['button']
+                                            )
         self.textRtcHr = self.aWidgets.newLine(12)
-        # self.textRtcHr.setFixedWidth(70)
         self.textRtcMin = self.aWidgets.newLine(12)
-        # self.textRtcMin.setFixedWidth(70)
 
         buttonSetTime = self.aWidgets.newButton("Set time",
                                             self.slotRtcSetTime,
@@ -421,6 +426,7 @@ class GuiCli(AppMainWindow):
         self.layoutFrameControl.addWidget(buttonVersion, 6, 2, 1, 2)
 
         self.layoutFrameControl.addWidget(buttonHelp, 7, 0, 1, 2)
+        self.layoutFrameControl.addWidget(buttonStats, 7, 2, 1, 2)
         self.layoutFrameControl.addWidget(labelTitleRtc, 8, 0, 1, -1)
         self.layoutFrameControl.addWidget(labelRtcHr, 9, 0)
         self.layoutFrameControl.addWidget(self.textRtcHr, 9, 1)
@@ -492,6 +498,12 @@ class GuiCli(AppMainWindow):
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
+    def slotStats(self):
+        try:
+            self.micro.getStats()
+        except Exception as e:
+            self.showErrorMessage(f'{e}')
+
     def slotHeap(self):
         try:
             self.micro.getHeap()
@@ -533,8 +545,8 @@ class GuiCli(AppMainWindow):
     def initMainWindow(self, appRootPath, title, w, h):
         """ Set default main windows properties  """
         self.centerWindow()
-        # self.setMinimumSize(w, h)
-        self.setFixedSize(w, h)
+        self.setMinimumSize(w, h)
+        # self.setFixedSize(w, h)
         self.setWindowTitle(title + f" v{self.appVersion['major']}.{self.appVersion['minor']}")
         self.setWindowIcon(QIcon(appRootPath + self.iconPaths["mainIcon"]))
         self.setStyleSheet(self.styles['mainWindow'])
