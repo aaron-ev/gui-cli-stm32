@@ -1,7 +1,8 @@
 from serialDev import ThreadSerialDev
 
 class Micro():
-    supportedBaudarates = ['1200','2400','4800','9600','38400', '115200']
+    baudRates = ['1200','2400','4800','9600','38400', '115200']
+    channels = ['CH1', 'CH2', 'CH3', 'CH4']
     supportedGpios  = ['a','b','c','d','e','h']
     supportedPins = (0, 15)
     cmds = {\

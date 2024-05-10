@@ -19,22 +19,36 @@ import subprocess
 from appClasses import AppMainWindow, AWidgets, ASettings
 from micro import Micro
 
-APP_WIDTH = 1220
-APP_HIGHT = 550
+APP_WIDTH = 920
+APP_HIGHT = 620
 
 import serial
 import serial.tools.list_ports
 
+
+import matplotlib
+matplotlib.use('Qt5Agg')
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
+from matplotlib.figure import Figure
+
+class MplCanvas(FigureCanvasQTAgg):
+
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = fig.add_subplot(111)
+        super(MplCanvas, self).__init__(fig)
+
 class GuiCli(AppMainWindow):
     appVersion = {'major': '1', 'minor':'0'}
-    buttonSize = (220, 35)
     defaultFrameStyle = "QFrame { background-color: #1f1f1f; border-radius: 10px; border: 2px solid #333; }"
     defaultLabelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
-    defaultControlFrameSize = 480
-    defaultLogFrameSize = 400
+    buttonSize = (140, 35)
+    defaultControlFrameSize = 320
+    defaultLogFrameSize = 200
     labelPointSize = 12
     defaultToolbarBg = "#1f1f1f"
     defaultToolbarColor = "white"
+    textLogHightSize = 160
 
     def __init__(self, title, w, h):
         super().__init__()
@@ -47,7 +61,7 @@ class GuiCli(AppMainWindow):
         self.buttonsFont.setPointSize(self.buttonFontSize)
         self.settings = ASettings(self.appRootPath, self.iconPaths, self.styles)
 
-        # Layouts
+        # Initialize all layouts attached to the main window
         self.initLayouts()
 
         # Menu bar
@@ -191,6 +205,7 @@ class GuiCli(AppMainWindow):
     def initLogSection(self):
         labelPort = self.aWidgets.newLabel("Port", self.labelPointSize, self.defaultLabelStyle)
         labelBaudRate = self.aWidgets.newLabel("Baud rate", self.labelPointSize, self.defaultLabelStyle)
+        # labelTitlePlot = self.aWidgets.newLabel("Mat plot", self.labelPointSize, self.defaultLabelStyle)
 
         # Create combobox for sandboxes
         self.comboBoxComPorts = self.aWidgets.newComboBox(self.slotComboBoxComPorts)
@@ -202,13 +217,14 @@ class GuiCli(AppMainWindow):
             self.comboBoxComPorts.addItem(port.description)
 
         # Update combobox with supported baudrates
-        for baud in self.micro.supportedBaudarates:
+        for baud in self.micro.baudRates:
             self.comboBoxBaudrates.addItem(baud)
         # Set 9600 as default since it is the most common baud rate
         self.comboBoxBaudrates.setCurrentText('9600')
 
         # Dock: Dock for any message from serial port
         self.dockLog, self.textBoxLog = self.aWidgets.newDock("Log", "dock")
+        self.dockLog.setFixedHeight(self.textLogHightSize)
 
         # Button: Connect to serial port
         self.buttonConnectDisconnect = self.aWidgets.newButton("Start monitoring",
@@ -217,13 +233,30 @@ class GuiCli(AppMainWindow):
                                                             self.appRootPath + self.iconPaths['serialPort'], \
                                                             None,
                                                             self.styles['button']
-                                                          )
+                                                              )
+
+        # Matplot
+        sc = MplCanvas(self, width=5, height=4, dpi=100)
+        sc.axes.set_xlabel("Time(s)")
+        sc.axes.set_ylabel("Voltage(V)")
+        sc.axes.set_title("Signal")
+
+        x =  list(range(0, 7))
+        y  = [0, 0, 1, 1, 1,0, 0]
+        sc.axes.plot(x, y)
+        toolbar = NavigationToolbar(sc)
+
+
         self.layoutLog.addWidget(labelPort, 1, 0)
         self.layoutLog.addWidget(self.comboBoxComPorts, 1, 1)
         self.layoutLog.addWidget(labelBaudRate, 1, 2)
         self.layoutLog.addWidget(self.comboBoxBaudrates, 1, 3)
         self.layoutLog.addWidget(self.buttonConnectDisconnect, 2, 0, 1, -1)
         self.layoutLog.addWidget(self.dockLog, 3, 0, 1, -1)
+        # self.layoutLog.addWidget(labelTitlePlot, 4, 0, 1, -1)
+
+        self.layoutPlots.addWidget(toolbar, 0, 0)
+        self.layoutPlots.addWidget(sc, 1, 0)
 
     def initControlSection(self):
         labelTitleGpioRW = self.aWidgets.newLabel("GPIO Write/Read", self.labelPointSize, self.defaultLabelStyle)
@@ -233,6 +266,9 @@ class GuiCli(AppMainWindow):
         labelTitleRtc = self.aWidgets.newLabel("RTC", self.labelPointSize, self.defaultLabelStyle)
         labelRtcHr = self.aWidgets.newLabel("Hr", self.labelPointSize, self.defaultLabelStyle)
         labelRctMin = self.aWidgets.newLabel("Min", self.labelPointSize, self.defaultLabelStyle)
+        labelTitlePwm = self.aWidgets.newLabel("PWM", self.labelPointSize, self.defaultLabelStyle)
+        # labelTitlePwm.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        labelPwmChannel = self.aWidgets.newLabel("Channel", self.labelPointSize, self.defaultLabelStyle)
 
 
         # Combobox: GPIOS
@@ -325,6 +361,19 @@ class GuiCli(AppMainWindow):
                                             self.buttonSize,
                                             self.styles['button']
                                             )
+        # Combobox: PWM channels
+        self.comboBoxPwmChannels = self.aWidgets.newComboBox()
+        for channel in self.micro.channels:
+            self.comboBoxPwmChannels.addItem(channel)
+
+        # Button: Start measure
+        buttonPwmMeasure = self.aWidgets.newButton("Start measure",
+                                            self.slotPwmStartMeasure,
+                                            self.buttonsFont,
+                                            self.appRootPath + self.iconPaths['stats'],
+                                            None,
+                                            self.styles['button']
+                                            )
 
         self.layoutFrameControl.addWidget(labelTitleGpioRW, 0, 0, 1, -1)
         self.layoutFrameControl.addWidget(labelGpio, 1, 0)
@@ -349,6 +398,13 @@ class GuiCli(AppMainWindow):
         self.layoutFrameControl.addWidget(self.textRtcMin, 9, 3)
         self.layoutFrameControl.addWidget(buttonSetTime, 10, 0, 1, 2)
         self.layoutFrameControl.addWidget(buttonGetTime, 10, 2, 1, 2)
+        self.layoutFrameControl.addWidget(labelTitlePwm, 11, 0, 1, -1)
+        self.layoutFrameControl.addWidget(labelPwmChannel, 12, 1)
+        self.layoutFrameControl.addWidget(self.comboBoxPwmChannels, 12, 2, 1, -1)
+        self.layoutFrameControl.addWidget(buttonPwmMeasure, 13, 0, 1, -1)
+
+    def slotPwmStartMeasure(self):
+        self.writeToLog("Not implemented yet :)\n", 'yellow')
 
     def updateBorderColor(self, style, hexBorderColor):
         border_index = style.find("border:")
@@ -464,7 +520,7 @@ class GuiCli(AppMainWindow):
         for port in ports:
             self.comboBoxComPorts.addItem(port.name)
 
-        for baud in self.supportedBaudarates:
+        for baud in self.micro.baudRates:
             self.comboBoxBaudrates.addItem(baud)
 
         self.gridLayout.addWidget(self.comboBoxComPorts, 0, 0)
@@ -483,13 +539,13 @@ class GuiCli(AppMainWindow):
         self.centralWidget.setLayout(self.gridLayout)
         self.setCentralWidget(self.centralWidget)
 
-        # Frame: Frame for all buttons (any kind of control)
+        # Frame: Frame for holding widgets for controlling the micro
         frame = QFrame()
         frame.setStyleSheet(self.defaultFrameStyle)
         frame.setMaximumWidth(self.defaultControlFrameSize)
         self.layoutFrameControl = QGridLayout()
         frame.setLayout(self.layoutFrameControl)
-        self.gridLayout.addWidget(frame, 0, 0)
+        self.gridLayout.addWidget(frame, 0, 0, -1, 1)
 
         # Frame: Frame for logs and data visualization
         frame = QFrame()
@@ -498,6 +554,15 @@ class GuiCli(AppMainWindow):
         self.layoutLog = QGridLayout()
         frame.setLayout(self.layoutLog)
         self.gridLayout.addWidget(frame, 0, 1)
+
+        # Frame: Plots
+        frame = QFrame()
+        frame.setStyleSheet(self.defaultFrameStyle)
+        frame.setMinimumWidth(self.defaultLogFrameSize)
+        self.layoutPlots = QGridLayout()
+        frame.setLayout(self.layoutPlots)
+        self.gridLayout.addWidget(frame, 1, 1)
+
 
     #############################################################
     #                    START OF SLOT FUNCTIONS
