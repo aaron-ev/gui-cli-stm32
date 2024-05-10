@@ -210,7 +210,7 @@ class AppMainWindow(QMainWindow):
                             }
                          """,
                 }
-    buttonFontSize = 12
+    buttonFontSize = 10
     notiSoundPath = "audio/notification.wav"
 
     def __init__(self):

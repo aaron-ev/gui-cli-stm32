@@ -1,36 +1,31 @@
 """
     Author: Aaron Escoboza
-    Description:  GUI application to drive an STM32 microcontroller
+    Description:  GUI application to drive STM32 peripheral
+    Github: https://github.com/aaron-ev
 """
 
 import os
 import queue
-import webbrowser
-# import psutil
 from PyQt5.QtWidgets import (QApplication, QMenuBar, QToolBar, QWidget, QGridLayout,
-                             QFrame, QAction, QLabel, QComboBox, QPushButton, QCheckBox,
-                             QTextEdit, QDockWidget, QTextBrowser, QLineEdit, QFileDialog,
-                             QMessageBox, QWidgetAction, QSpinBox
-                            )
-from PyQt5.QtCore import Qt, pyqtSignal, QSettings, QMutex, QWaitCondition, QThread, QSize, QTimer
-from PyQt5.QtGui import QIcon, QFont, QTextCharFormat, QColor, QPixmap
-import subprocess
+                             QFrame, QComboBox, QFileDialog, QMessageBox,
+                             QWidgetAction, QSpinBox
+                             )
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QIcon, QFont, QTextCharFormat, QColor
 
 from appClasses import AppMainWindow, AWidgets, ASettings
 from micro import Micro
 
-APP_WIDTH = 920
-APP_HIGHT = 620
-
 import serial
 import serial.tools.list_ports
-
 
 import matplotlib
 matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
+APP_WIDTH = 820
+APP_HIGHT = 560
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
@@ -42,8 +37,8 @@ class GuiCli(AppMainWindow):
     appVersion = {'major': '1', 'minor':'0'}
     defaultFrameStyle = "QFrame { background-color: #1f1f1f; border-radius: 10px; border: 2px solid #333; }"
     defaultLabelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
-    buttonSize = (140, 35)
-    defaultControlFrameSize = 320
+    buttonSize = (95, 30)
+    defaultControlFrameSize = 230
     defaultLogFrameSize = 200
     labelPointSize = 12
     defaultToolbarBg = "#1f1f1f"
@@ -52,33 +47,47 @@ class GuiCli(AppMainWindow):
 
     def __init__(self, title, w, h):
         super().__init__()
-        self.micro = Micro(callbackDataRead = self.callbackMicroReadData)
         self.appRootPath = os.getcwd()
+
+        # Object to perform microcontroller operations
+        self.micro = Micro(callbackDataRead = self.callbackMicroReadData)
+
+        # Initialize main window with icon, title, and user width/height
         self.initMainWindow(self.appRootPath, title, w, h)
+
+        # Object to create custom widgets
         self.aWidgets = AWidgets()
+
+        # Set a default fo nt for buttons
         self.buttonsFont = QFont()
         self.buttonsFont.setFamily('Helvetica')
         self.buttonsFont.setPointSize(self.buttonFontSize)
+
+        # Object to save user settings
         self.settings = ASettings(self.appRootPath, self.iconPaths, self.styles)
 
         # Initialize all layouts attached to the main window
         self.initLayouts()
 
-        # Menu bar
+        # Initialize menu bar
         self.initMenuBar()
 
         # Toolbar
-        self.initToolBar()
+        # self.initToolBar()
 
-        # General widgets
+        # Initialize two main section:
+        # 1. Section for buttons to send micro requests/cmds
+        # 2. Section for logging and data visualization
         self.initLogSection()
         self.initControlSection()
 
         # Create queue for saving log messages
         self.logQueue = queue.Queue()
 
-        self.writeToLog("\t\tWelcome to Micro CLI\n\n", 'green')
-        self.writeToLog("\t\t<Ready to start, select a serial port>\n", 'yellow')
+        # Display welcome message
+        self.writeToLog("Welcome to Micro CLI\n\n", 'green')
+        # self.writeToLog("\t\tWelcome to Micro CLI\n\n", 'green')
+        # self.writeToLog("\t\t<Ready to start, select a serial port>\n", 'yellow')
 
         # Initialize event loop by calling show method
         self.show()
@@ -89,13 +98,20 @@ class GuiCli(AppMainWindow):
         menuBar.setStyleSheet(self.styles['menuBar'])
 
         # Create bar options
+        menuBarSave= menuBar.addMenu("&Save")
+        menuBarSettings = menuBar.addMenu("&Settings")
         menuBarHelp = menuBar.addMenu("&Help")
 
         # Create actions for help
         infoAction = self.aWidgets.newAction(self, "&Info", self.appRootPath + self.iconPaths['info'], self.actionHelp)
+        actionSerialSettings = self.aWidgets.newAction(self, "&Serial device", slot = self.actionSerialSettings)
+        actionSaveLog = self.aWidgets.newAction(self, "&Log", slot = self.actionSaveLog)
+
 
         # Add all actions to the menubar
         menuBarHelp.addAction(infoAction)
+        menuBarSettings.addAction(actionSerialSettings)
+        menuBarSave.addAction(actionSaveLog)
 
         # Set menu bar to the main window
         self.setMenuBar(menuBar)
@@ -177,6 +193,12 @@ class GuiCli(AppMainWindow):
                         'yellow'
                         )
 
+
+    def actionSerialSettings(self):
+        if self.settings.exec_():
+            self.writeToLog("user select yes\n")
+
+
     def clearLogQueue(self):
         while not self.logQueue:
             self.logQueue.get()
@@ -253,7 +275,6 @@ class GuiCli(AppMainWindow):
         y  = [0, 0, 1, 1, 1,0, 0]
         sc.axes.plot(x, y)
         toolbar = NavigationToolbar(sc)
-
 
         self.layoutLog.addWidget(labelPort, 1, 0)
         self.layoutLog.addWidget(self.comboBoxComPorts, 1, 1)
