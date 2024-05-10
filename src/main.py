@@ -234,6 +234,14 @@ class GuiCli(AppMainWindow):
                                                             None,
                                                             self.styles['button']
                                                               )
+        # Button: Refresh the serial port list
+        buttonRefresh = self.aWidgets.newButton("",
+                                                  self.slotButtonRefreshSerialPorts,
+                                                  self.buttonsFont,
+                                                  self.appRootPath + self.iconPaths['refresh'],
+                                                  (30, 25),
+                                                  self.styles['button']
+                                                )
 
         # Matplot
         sc = MplCanvas(self, width=5, height=4, dpi=100)
@@ -249,8 +257,9 @@ class GuiCli(AppMainWindow):
 
         self.layoutLog.addWidget(labelPort, 1, 0)
         self.layoutLog.addWidget(self.comboBoxComPorts, 1, 1)
-        self.layoutLog.addWidget(labelBaudRate, 1, 2)
-        self.layoutLog.addWidget(self.comboBoxBaudrates, 1, 3)
+        self.layoutLog.addWidget(buttonRefresh, 1, 2)
+        self.layoutLog.addWidget(labelBaudRate, 1, 3)
+        self.layoutLog.addWidget(self.comboBoxBaudrates, 1, 4)
         self.layoutLog.addWidget(self.buttonConnectDisconnect, 2, 0, 1, -1)
         self.layoutLog.addWidget(self.dockLog, 3, 0, 1, -1)
         # self.layoutLog.addWidget(labelTitlePlot, 4, 0, 1, -1)
@@ -483,6 +492,12 @@ class GuiCli(AppMainWindow):
             self.micro.writePin(gpio, pin, False)
         except Exception as e:
             self.showErrorMessage(f'{e}')
+
+    def slotButtonRefreshSerialPorts(self):
+        self.comboBoxComPorts.clear()
+        ports = serial.tools.list_ports.comports()
+        for port in ports:
+            self.comboBoxComPorts.addItem(port.description)
 
     def centerWindow(self):
         # Get the geometry of the screen
