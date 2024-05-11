@@ -8,7 +8,7 @@ import os
 import queue
 from PyQt5.QtWidgets import (QApplication, QMenuBar, QToolBar, QWidget, QGridLayout,
                              QFrame, QComboBox, QFileDialog, QMessageBox,
-                             QWidgetAction, QSpinBox
+                             QWidgetAction, QSpinBox, QStatusBar
                              )
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QIcon, QFont, QTextCharFormat, QColor
@@ -71,6 +71,16 @@ class GuiCli(AppMainWindow):
 
         # Initialize menu bar
         self.initMenuBar()
+
+        # Initialize status bar
+        self.statusBarWidget = QStatusBar()
+        self.setStatusBar(self.statusBarWidget)
+        self.statusBarWidget.setStyleSheet("color: white;")
+        font = QFont()
+        font.setPointSize(10)
+        self.statusBarWidget.setFont(font)
+        self.statusBarWidget.setMaximumHeight(13)
+        self.updateStatusBar("Disconnected", "yellow")
 
         # Toolbar
         # self.initToolBar()
@@ -684,6 +694,11 @@ class GuiCli(AppMainWindow):
         frame.setLayout(self.layoutPlots)
         self.gridLayout.addWidget(frame, 1, 1)
 
+    def updateStatusBar(self, text, color = 'white'):
+        # Check if color is hex code
+        self.statusBarWidget.setStyleSheet(f'color:{color};')
+        self.statusBarWidget.showMessage(text)
+
     #############################################################
     #                    START OF SLOT FUNCTIONS
     #############################################################
@@ -704,21 +719,27 @@ class GuiCli(AppMainWindow):
             if self.micro.isOpen():
                 self.micro.close()
                 self.buttonConnectDisconnect.setText("Start monitoring")
-                self.writeToLog(f'Disconnected from {portName}\n', 'yellow')
+                # self.writeToLog(f'Disconnected from {portName}\n', 'yellow')
 
                 # Update button border  color
                 self.prevStyle = self.buttonConnectDisconnect.styleSheet()
                 newStyle = self.updateBorderColor(self.prevStyle, "#555555")
                 self.buttonConnectDisconnect.setStyleSheet(newStyle)
+
+                self.updateStatusBar("Disconnected", "yellow")
+
             else:
                 self.micro.open(portName, baud, dataLen, stopBits)
-                self.writeToLog(f'Connected to {portName}\n', 'green')
+                # self.writeToLog(f'Connected to {portName}\n', 'green')
                 self.buttonConnectDisconnect.setText("Stop monitoring")
 
                 # Update button border  color
                 self.prevStyle = self.buttonConnectDisconnect.styleSheet()
                 newStyle = self.updateBorderColor(self.prevStyle, "#77DD77")
                 self.buttonConnectDisconnect.setStyleSheet(newStyle)
+
+                # Update status bar
+                self.updateStatusBar("Connected", "#77DD77")
         except Exception as e:
             self.showErrorMessage(f'Error{e}')
 
