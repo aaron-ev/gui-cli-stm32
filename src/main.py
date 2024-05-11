@@ -100,17 +100,18 @@ class GuiCli(AppMainWindow):
         # Create bar options
         menuBarSave= menuBar.addMenu("&Save")
         menuBarSettings = menuBar.addMenu("&Settings")
+        menuBarSettings.aboutToShow.connect(self.showSettingsMenu)
         menuBarHelp = menuBar.addMenu("&Help")
 
         # Create actions for help
         infoAction = self.aWidgets.newAction(self, "&Info", self.appRootPath + self.iconPaths['info'], self.actionHelp)
-        actionSerialSettings = self.aWidgets.newAction(self, "&Serial device", slot = self.actionSerialSettings)
-        actionSaveLog = self.aWidgets.newAction(self, "&Log", slot = self.actionSaveLog)
+        # actionSerialSettings = self.aWidgets.newAction(self, "&Serial device", slot = self.actionSerialSettings)
+        actionSaveLog = self.aWidgets.newAction(self, "&Log", self.appRootPath + self.iconPaths['save'],  self.actionSaveLog)
 
 
         # Add all actions to the menubar
         menuBarHelp.addAction(infoAction)
-        menuBarSettings.addAction(actionSerialSettings)
+        # menuBarSettings.addAction(actionSerialSettings)
         menuBarSave.addAction(actionSaveLog)
 
         # Set menu bar to the main window
@@ -179,7 +180,7 @@ class GuiCli(AppMainWindow):
 
     def actionSettings(self):
         if self.settings.exec_():
-            self.writeToLog("user select yes\n")
+            self.writeToLog("Apply event\n")
 
     def slotSpinBoxLogValueChanged(self, newValue):
         font = self.textBoxLog.font()
@@ -193,11 +194,9 @@ class GuiCli(AppMainWindow):
                         'yellow'
                         )
 
-
-    def actionSerialSettings(self):
+    def showSettingsMenu(self):
         if self.settings.exec_():
-            self.writeToLog("user select yes\n")
-
+            self.writeToLog("Apply event\n")
 
     def clearLogQueue(self):
         while not self.logQueue:

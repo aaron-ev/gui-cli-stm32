@@ -1,6 +1,6 @@
 from PyQt5.QtGui import QIcon, QFont, QPixmap
 from PyQt5.QtWidgets import (QGridLayout, QLabel, QPushButton,  QLineEdit, QFileDialog,
-                             QMainWindow, QDialog, QHBoxLayout, QWidget, QTextEdit,QComboBox,QDockWidget, QAction
+                             QMainWindow, QDialog, QHBoxLayout, QWidget, QTextEdit,QComboBox,QDockWidget, QAction, QTabWidget
                             )
 from PyQt5.QtCore import Qt, QThread, QSize
 
@@ -348,22 +348,16 @@ class AWidgets():
         return action
 
 class ASettings(QDialog):
-    maxSize = (360, 160)
+    maxSize = (330, 190)
     newFolderBsClient = None
     newCompilationResultsDir = None
     defaultLabelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
     labelPointSize = 12
-
-    def initWindow(self, appRootPath, iconPaths, styles):
-        self.setWindowTitle("Settings")
-        self.setStyleSheet(styles['dialog'])
-        self.setWindowIcon(QIcon(appRootPath + iconPaths['settings']))
-        self.setFixedSize(self.maxSize[0], self.maxSize[1])
-
-    def initFonts(self):
-        self.buttonsFont = QFont()
-        self.buttonsFont.setFamily('Helvetica')
-        self.buttonsFont.setPointSize(10)
+    tabStyle = ("QTabWidget { background-color: #1f1f1f; }"
+                "QTabWidget::pane { background-color: black; }"
+                "QTabBar::tab { color: white; background-color: black; }"
+                "QTabBar::tab:selected { background-color: gray; }"
+                )
 
     def __init__(self, appRootPath, iconPaths, styles):
         super().__init__()
@@ -371,7 +365,6 @@ class ASettings(QDialog):
         self.appRootPath = appRootPath
         self.initFonts()
         self.initWindow(appRootPath, iconPaths, styles)
-        # self.config = config
         aWidgets = AWidgets()
         buttonApply = QPushButton("&Apply")
         buttonCancel = QPushButton("&Cancel")
@@ -381,10 +374,11 @@ class ASettings(QDialog):
         buttonCancel.clicked.connect(self.cancel)
 
         # Create labels
-        labelSerialConfig = aWidgets.newLabel("Serial configuration", self.labelPointSize, self.defaultLabelStyle)
+        labelSerialConfig = aWidgets.newLabel("Settings", self.labelPointSize, self.defaultLabelStyle)
         labelDataLen = aWidgets.newLabel("Data length", self.labelPointSize, self.defaultLabelStyle)
         labelStopBits = aWidgets.newLabel("Stop bits", self.labelPointSize, self.defaultLabelStyle)
 
+        # Comboboxes
         self.comboboxDataLen = aWidgets.newComboBox()
         self.comboboxStopBits = aWidgets.newComboBox()
 
@@ -398,51 +392,51 @@ class ASettings(QDialog):
         self.comboboxStopBits.addItem("2")
         self.stopBitsPrevState = self.comboboxStopBits.currentText()
 
-        # Initialize notifications for sending on success or failure
-        self.initNotifications()
+        # Layout for main dialog
         gridLayout = QGridLayout()
+
+        # Layouts for each tab
+        serialLayout = QGridLayout()
+
         self.setLayout(gridLayout)
-        # gridLayout.setContentsMargins(10, 10, 1, 1)
+
+        # Initialize tabs
+        self.tabs = QTabWidget()
+        self.tabs.setFixedWidth(self.maxSize[0])
+        self.tabs.setStyleSheet(self.tabStyle)
+        self.tabSerial = QWidget()
+        self.tabSerial.setLayout(serialLayout)
+        self.tabSerial.setStyleSheet("background-color: #1f1f1f;")
+        self.tabSerial.setContentsMargins(10,10,10,10)
+
+        self.tabGeneral = QWidget()
+        self.tabs.addTab(self.tabSerial, "Serial device")
+        # self.tabs.addTab(self.tabGeneral, "General")
 
         # Create layout and add widgets to it
-        gridLayout.addWidget(labelSerialConfig, 0, 0, 1, -1)
-        gridLayout.addWidget(labelDataLen, 1, 0)
-        gridLayout.addWidget(self.comboboxDataLen, 1, 1)
-        gridLayout.addWidget(labelStopBits, 2, 0)
-        gridLayout.addWidget(self.comboboxStopBits, 2, 1)
-        gridLayout.addWidget(buttonApply, 3, 0)
-        gridLayout.addWidget(buttonCancel, 3, 1)
+        gridLayout.addWidget(self.tabs, 0, 0)
+        gridLayout.addWidget(buttonApply, 1, 0)
+        gridLayout.addWidget(buttonCancel, 1, 1)
 
-    def initNotifications(self):
-        pass
-        # # Create label for enable notifications and its on/off image
-        # self.labelNoti = self.createLabel("Enable notifications", 12)
-        # self.notiStateImage = self.createLabel("", 12)
+        # Add widgets to serial tab
+        serialLayout.addWidget(labelSerialConfig, 0, 0, 1, -1)
+        serialLayout.addWidget(labelDataLen, 1, 0)
+        serialLayout.addWidget(self.comboboxDataLen, 1, 1)
+        serialLayout.addWidget(labelStopBits, 2, 0)
+        serialLayout.addWidget(self.comboboxStopBits, 2, 1)
 
-        # # Current size is needed to do a proper scalation
-        # self.notiLabelSize = self.notiStateImage.size()
+    def initWindow(self, appRootPath, iconPaths, styles):
+        self.setWindowTitle("Settings")
+        self.setStyleSheet(styles['dialog'])
+        self.setWindowIcon(QIcon(appRootPath + iconPaths['settings']))
+        self.setFixedSize(self.maxSize[0], self.maxSize[1])
 
-        # # Map slot to get new mouse event
-        # self.notiStateImage.mousePressEvent = self.updateNotiState
-
-        # # Check if notification value is already saved
-        # regEnableNoti = self.config.read("notification", "isenable").lower()
-        # if regEnableNoti is ["none"]:
-        #     regEnableNoti = "false"
-
-        # # Set new image according to reg state
-        # onImage = self.appRootPath + self.iconPaths['onImage']
-        # offImage = self.appRootPath + self.iconPaths['offImage']
-        # newImage = onImage if regEnableNoti == "true" else offImage
-        # pixmap = QPixmap(newImage)
-        # self.notiStateImage.setPixmap(pixmap.scaled(self.notiLabelSize * 0.1, Qt.KeepAspectRatio, \
-        #                               Qt.SmoothTransformation))
-
-        # # Update local notification reg state
-        # self.notiRegState = regEnableNoti
+    def initFonts(self):
+        self.buttonsFont = QFont()
+        self.buttonsFont.setFamily('Helvetica')
+        self.buttonsFont.setPointSize(10)
 
     def apply(self):
-        # self.saveSettings()
         self.accept()
 
     def saveSettings(self):
@@ -465,22 +459,9 @@ class ASettings(QDialog):
         self.comboboxStopBits.setCurrentText(self.stopBitsPrevState)
         self.reject()
 
-    def updateNotiState(self, event):
-        if event is not None and event.button() != Qt.LeftButton:
-            return
-
-        if self.notiRegState == "true":
-            self.notiRegState = "false"
-            newImage = self.appRootPath + self.iconPaths["offImage"]
-        else:
-            self.notiRegState = "true"
-            newImage = self.appRootPath + self.iconPaths["onImage"]
-        pixmap = QPixmap(newImage)
-        # scaled_pixmap = pixmap.scaled(self.notificationEnableStateImage.size() * 0.1, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.notiStateImage.setPixmap(pixmap.scaled(self.notiLabelSize * 0.1, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-
     def getSerialDataLen(self):
         return self.comboboxDataLen.currentText()
 
     def getSerialStopBits(self):
         return self.comboboxStopBits.currentText()
+
