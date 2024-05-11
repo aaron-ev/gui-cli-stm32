@@ -399,6 +399,9 @@ class ASettings(QDialog):
         # Initialize tab for serial settings
         self.initSerialTab(self.mainTab)
 
+        # Initialize tab for customization
+        self.initCustomizationTab(self.mainTab)
+
     def initSerialTab(self, tabWidget):
         serialLayout = QGridLayout()
 
@@ -410,9 +413,9 @@ class ASettings(QDialog):
 
         # Create labels
         labelSerialConfig = self.aWidgets.newLabel("Settings", self.labelPointSize, self.labelStyle)
-        labelDataLen = self.aWidgets.newLabel("Data length", self.labelPointSize, self.labelStyle)
-        labelParity = self.aWidgets.newLabel("Parity", self.labelPointSize, self.labelStyle)
-        labelStopBits = self.aWidgets.newLabel("Stop bits", self.labelPointSize, self.labelStyle)
+        labelDataLen = self.aWidgets.newLabel("Data:", self.labelPointSize, self.labelStyle)
+        labelParity = self.aWidgets.newLabel("Parity:", self.labelPointSize, self.labelStyle)
+        labelStopBits = self.aWidgets.newLabel("Stop bits:", self.labelPointSize, self.labelStyle)
 
         # Create comboboxes
         self.comboboxDataLen = self.aWidgets.newComboBox()
@@ -443,6 +446,22 @@ class ASettings(QDialog):
         serialLayout.addWidget(self.comboboxParity, 2, 1)
         serialLayout.addWidget(labelStopBits, 3, 0)
         serialLayout.addWidget(self.comboboxStopBits, 3, 1)
+
+    def initCustomizationTab(self, tabWidget):
+        customLayout = QGridLayout()
+        tabCustom = QWidget()
+
+        tabCustom.setLayout(customLayout)
+        tabCustom.setStyleSheet("background-color: #1f1f1f;")
+        tabWidget.addTab(tabCustom, "Custom")
+
+        labelThemes = self.aWidgets.newLabel("Themes", self.labelPointSize, self.labelStyle)
+        self.comboboxThemes= self.aWidgets.newComboBox()
+        self.comboboxThemes.addItem("Dark")
+        self.comboboxThemes.addItem("White")
+
+        customLayout.addWidget(labelThemes, 0, 0)
+        customLayout.addWidget(self.comboboxThemes, 0, 1)
 
     def apply(self):
         self.accept()
