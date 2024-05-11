@@ -1,5 +1,4 @@
 from serialDev import ThreadSerialDev
-
 class Micro():
     baudRates = ['1200','2400','4800','9600','38400', '115200']
     channels = ['CH1', 'CH2', 'CH3', 'CH4']
@@ -36,6 +35,7 @@ class Micro():
 
     def getVersion(self):
         self.serialThread.write(self.cmds['version'])
+
     def writePin(self, gpio, pin, state):
         if state == True:
             cmd = f'gpio-w {gpio.lower()} {pin} 1\n'
@@ -65,8 +65,8 @@ class Micro():
     def getStats(self):
         self.serialThread.write(self.cmds['stats'])
 
-    def open(self, serialDev, baud, dataLen, stopBits):
-        self.serialThread.open(serialDev, baud, int(dataLen), int(stopBits))
+    def open(self, serialDev, baud = 9600, dataLen = 8, parity = 'N', stopBits = 1):
+        self.serialThread.open(serialDev, baud, int(dataLen), parity, int(stopBits))
 
     def close(self):
         self.serialThread.close()

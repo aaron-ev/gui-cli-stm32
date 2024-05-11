@@ -349,7 +349,7 @@ class AWidgets():
         return action
 
 class ASettings(QDialog):
-    maxSize = (330, 190)
+    maxSize = (330, 220)
     labelPointSize = 12
     labelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
     tabStyle = ("QTabWidget { background-color: #1f1f1f; }"
@@ -411,11 +411,13 @@ class ASettings(QDialog):
         # Create labels
         labelSerialConfig = self.aWidgets.newLabel("Settings", self.labelPointSize, self.labelStyle)
         labelDataLen = self.aWidgets.newLabel("Data length", self.labelPointSize, self.labelStyle)
+        labelParity = self.aWidgets.newLabel("Parity", self.labelPointSize, self.labelStyle)
         labelStopBits = self.aWidgets.newLabel("Stop bits", self.labelPointSize, self.labelStyle)
 
         # Create comboboxes
         self.comboboxDataLen = self.aWidgets.newComboBox()
         self.comboboxStopBits = self.aWidgets.newComboBox()
+        self.comboboxParity = self.aWidgets.newComboBox()
 
         # Set supported data lengths
         self.comboboxDataLen.addItem("8")
@@ -427,12 +429,20 @@ class ASettings(QDialog):
         self.comboboxStopBits.addItem("2")
         self.stopBitsPrevState = self.comboboxStopBits.currentText()
 
+        # Set supported parity
+        self.comboboxParity.addItem("None")
+        self.comboboxParity.addItem("Odd")
+        self.comboboxParity.addItem("Even")
+        self.parityPrevState = self.comboboxParity.currentText()
+
         # Add widgets to serial tab
         serialLayout.addWidget(labelSerialConfig, 0, 0, 1, -1)
         serialLayout.addWidget(labelDataLen, 1, 0)
         serialLayout.addWidget(self.comboboxDataLen, 1, 1)
-        serialLayout.addWidget(labelStopBits, 2, 0)
-        serialLayout.addWidget(self.comboboxStopBits, 2, 1)
+        serialLayout.addWidget(labelParity, 2, 0)
+        serialLayout.addWidget(self.comboboxParity, 2, 1)
+        serialLayout.addWidget(labelStopBits, 3, 0)
+        serialLayout.addWidget(self.comboboxStopBits, 3, 1)
 
     def apply(self):
         self.accept()
@@ -441,6 +451,7 @@ class ASettings(QDialog):
         # Restore previous state
         self.comboboxDataLen.setCurrentText(self.datLenPrevState)
         self.comboboxStopBits.setCurrentText(self.stopBitsPrevState)
+        self.comboboxParity.setCurrentText(self.parityPrevState)
         self.reject()
 
     def getSerialDataLen(self):
@@ -449,3 +460,5 @@ class ASettings(QDialog):
     def getSerialStopBits(self):
         return self.comboboxStopBits.currentText()
 
+    def getSerialParity(self):
+        return self.comboboxParity.currentText()

@@ -721,6 +721,7 @@ class GuiCli(AppMainWindow):
         baud = self.comboBoxBaudrates.currentText()
         dataLen = self.settings.getSerialDataLen()
         stopBits = self.settings.getSerialStopBits()
+        parity  = self.settings.getSerialParity()
 
         try:
             if self.micro.isOpen():
@@ -736,7 +737,7 @@ class GuiCli(AppMainWindow):
                 self.updateStatusBar("Disconnected", "yellow")
 
             else:
-                self.micro.open(portName, baud, dataLen, stopBits)
+                self.micro.open(portName, baud, dataLen, parity, stopBits)
                 # self.writeToLog(f'Connected to {portName}\n', 'green')
                 self.buttonConnectDisconnect.setText("Stop monitoring")
 
