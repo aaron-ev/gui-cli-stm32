@@ -25,7 +25,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationTool
 from matplotlib.figure import Figure
 
 APP_WIDTH = 820
-APP_HIGHT = 620
+APP_HIGHT = 640
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
@@ -37,8 +37,8 @@ class GuiCli(AppMainWindow):
     appVersion = {'major': '1', 'minor':'0'}
     defaultFrameStyle = "QFrame { background-color: #1f1f1f; border-radius: 10px; border: 2px solid #333; }"
     defaultLabelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
-    buttonSize = (95, 30)
-    defaultControlFrameSize = 230
+    buttonSize = (110, 30)
+    defaultControlFrameSize = 270
     defaultLogFrameSize = 200
     labelPointSize = 12
     defaultToolbarBg = "#1f1f1f"
@@ -290,13 +290,15 @@ class GuiCli(AppMainWindow):
 
     def initControlSection(self):
         labelTitleGpioRW = self.aWidgets.newLabel("GPIO Write/Read", self.labelPointSize, self.defaultLabelStyle)
-        labelGpio= self.aWidgets.newLabel("GPIO", self.labelPointSize, self.defaultLabelStyle)
-        labelPin = self.aWidgets.newLabel("Pin", self.labelPointSize, self.defaultLabelStyle)
+        labelGpio= self.aWidgets.newLabel("GPIO", 10, self.defaultLabelStyle)
+        labelPin = self.aWidgets.newLabel("Pin", 10, self.defaultLabelStyle)
         labelTitleGeneralInfo = self.aWidgets.newLabel("General information ", self.labelPointSize, self.defaultLabelStyle)
         labelTitleRtc = self.aWidgets.newLabel("RTC", self.labelPointSize, self.defaultLabelStyle)
-        labelRtcHr = self.aWidgets.newLabel("Hr", self.labelPointSize, self.defaultLabelStyle)
-        labelRctMin = self.aWidgets.newLabel("Min", self.labelPointSize, self.defaultLabelStyle)
+        labelRtcHr = self.aWidgets.newLabel("Hr", 10, self.defaultLabelStyle)
+        labelRctMin = self.aWidgets.newLabel("Min", 10, self.defaultLabelStyle)
         labelTitlePwm = self.aWidgets.newLabel("PWM", self.labelPointSize, self.defaultLabelStyle)
+        labelPwmFreq  = self.aWidgets.newLabel("Freq", 10, self.defaultLabelStyle)
+        labelPwmDuty  = self.aWidgets.newLabel("Duty", 10, self.defaultLabelStyle)
         # labelTitlePwm.setAlignment(Qt.AlignmentFlag.AlignCenter)
         labelPwmChannel = self.aWidgets.newLabel("Channel", self.labelPointSize, self.defaultLabelStyle)
 
@@ -379,8 +381,8 @@ class GuiCli(AppMainWindow):
                                             self.buttonSize,
                                             self.styles['button']
                                             )
-        self.textRtcHr = self.aWidgets.newLine(12)
-        self.textRtcMin = self.aWidgets.newLine(12)
+        self.textRtcHr = self.aWidgets.newLine(10)
+        self.textRtcMin = self.aWidgets.newLine(10)
 
         buttonSetTime = self.aWidgets.newButton("Set time",
                                             self.slotRtcSetTime,
@@ -400,6 +402,19 @@ class GuiCli(AppMainWindow):
         self.comboBoxPwmChannels = self.aWidgets.newComboBox()
         for channel in self.micro.channels:
             self.comboBoxPwmChannels.addItem(channel)
+
+
+        # Widgets to set PWM frequency and duty cycle
+        self.textPwmFreq = self.aWidgets.newLine(12)
+        self.textPwmDuty = self.aWidgets.newLine(12)
+        # Button: Set frequency and duty cycle
+        buttonPwmSetFreqDuty = self.aWidgets.newButton("Set freq/duty",
+                                            self.slotPwmSetFreqDuty,
+                                            self.buttonsFont,
+                                            None,
+                                            None,
+                                            self.styles['button']
+                                            )
 
         # Button: Start measure
         buttonPwmMeasure = self.aWidgets.newButton("Start measure",
@@ -428,16 +443,26 @@ class GuiCli(AppMainWindow):
         self.layoutFrameControl.addWidget(buttonHelp, 7, 0, 1, 2)
         self.layoutFrameControl.addWidget(buttonStats, 7, 2, 1, 2)
         self.layoutFrameControl.addWidget(labelTitleRtc, 8, 0, 1, -1)
+
+        # RTC
         self.layoutFrameControl.addWidget(labelRtcHr, 9, 0)
         self.layoutFrameControl.addWidget(self.textRtcHr, 9, 1)
         self.layoutFrameControl.addWidget(labelRctMin, 9, 2)
         self.layoutFrameControl.addWidget(self.textRtcMin, 9, 3)
         self.layoutFrameControl.addWidget(buttonSetTime, 10, 0, 1, 2)
         self.layoutFrameControl.addWidget(buttonGetTime, 10, 2, 1, 2)
+
+        # PWM
         self.layoutFrameControl.addWidget(labelTitlePwm, 11, 0, 1, -1)
-        self.layoutFrameControl.addWidget(labelPwmChannel, 12, 1)
-        self.layoutFrameControl.addWidget(self.comboBoxPwmChannels, 12, 2, 1, -1)
-        self.layoutFrameControl.addWidget(buttonPwmMeasure, 13, 0, 1, -1)
+        self.layoutFrameControl.addWidget(labelPwmFreq, 12, 0)
+        self.layoutFrameControl.addWidget(self.textPwmFreq, 12, 1)
+        self.layoutFrameControl.addWidget(labelPwmDuty, 12, 2)
+        self.layoutFrameControl.addWidget(self.textPwmDuty, 12, 3)
+        self.layoutFrameControl.addWidget(buttonPwmSetFreqDuty, 13, 0, 1, -1)
+
+        self.layoutFrameControl.addWidget(labelPwmChannel, 14, 1)
+        self.layoutFrameControl.addWidget(self.comboBoxPwmChannels, 14, 2, 1, -1)
+        self.layoutFrameControl.addWidget(buttonPwmMeasure, 15, 0, 1, -1)
 
     def slotPwmStartMeasure(self):
         self.writeToLog("Not implemented yet :)\n", 'yellow')
@@ -463,6 +488,19 @@ class GuiCli(AppMainWindow):
     def slotRtcGetTime(self):
         try:
              self.micro.getRtcTime()
+        except Exception as e:
+            self.showErrorMessage(f'{e}')
+
+    def slotPwmSetFreqDuty(self):
+        try:
+            freq =  self.textPwmFreq.text()
+            duty = self.textPwmDuty.text()
+            if len(freq) < 1:
+                raise Exception("Invalid frequency")
+            if len(duty) < 1:
+                raise Exception("Invalid duty cycle")
+
+            self.micro.setPwmFreqDuty(int(freq), int(duty))
         except Exception as e:
             self.showErrorMessage(f'{e}')
 

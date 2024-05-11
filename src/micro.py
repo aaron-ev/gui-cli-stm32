@@ -15,6 +15,7 @@ class Micro():
             'rtcTime':"rtc-g\n",
             'stats':"stats\n",
             }
+    maxFreq =  10000 # In Hz
 
     def __init__(self, callbackDataRead):
         self.serialDev = None
@@ -79,3 +80,19 @@ class Micro():
     def setRtcTime(self, hr, min, s = 0):
         cmd = f'rtc-s {hr} {min} {s}'
         self.serialThread.write(cmd)
+
+    def setPwmFreqDuty(self, freq, duty):
+        # Validate freq and duty parameters
+        if (freq < 0 or freq > self.maxFreq):
+            raise Exception("Invalid frequency")
+        if (duty < 0 or duty > 100):
+            raise Exception("Invalid duty, it should be between 1-100")
+
+        # Write frequency
+        cmd = f'pwm-f {freq}'
+        print(cmd)
+        # self.serialThread.write(cmd)
+        # Write duty cycle
+        cmd = f'pwm-d {duty} 1'
+        print(cmd)
+        # self.serialThread.write(cmd)
