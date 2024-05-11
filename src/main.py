@@ -25,7 +25,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationTool
 from matplotlib.figure import Figure
 
 APP_WIDTH = 820
-APP_HIGHT = 640
+APP_HIGHT = 680
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
@@ -424,44 +424,45 @@ class GuiCli(AppMainWindow):
                                             self.styles['button']
                                             )
 
-        self.layoutFrameControl.addWidget(labelTitleGpioRW, 0, 0, 1, -1)
-        self.layoutFrameControl.addWidget(labelGpio, 1, 0)
-        self.layoutFrameControl.addWidget(self.comboBoxGpios, 1, 1)
-        self.layoutFrameControl.addWidget(labelPin, 1, 2)
-        self.layoutFrameControl.addWidget(self.comboBoxPins, 1, 3)
-        self.layoutFrameControl.addWidget(buttonPinON, 2, 0, 1, 2)
-        self.layoutFrameControl.addWidget(buttonPinOff, 2, 2, 1, 2)
-        self.layoutFrameControl.addWidget(buttonReadPin, 3, 0, 1, -1)
-        self.layoutFrameControl.addWidget(labelTitleGeneralInfo, 4, 0, 1, -1)
-        self.layoutFrameControl.addWidget(buttonHeap, 5, 0, 1, 2)
-        self.layoutFrameControl.addWidget(buttonTicks, 5, 2, 1, 2)
 
-        self.layoutFrameControl.addWidget(buttonClk, 6, 0, 1, 2)
-        self.layoutFrameControl.addWidget(buttonVersion, 6, 2, 1, 2)
+        # GPIO handling
+        self.layoutGpio.addWidget(labelTitleGpioRW, 0, 0, 1, -1)
+        self.layoutGpio.addWidget(labelGpio, 1, 0)
+        self.layoutGpio.addWidget(self.comboBoxGpios, 1, 1)
+        self.layoutGpio.addWidget(labelPin, 1, 2)
+        self.layoutGpio.addWidget(self.comboBoxPins, 1, 3)
+        self.layoutGpio.addWidget(buttonPinON, 2, 0, 1, 2)
+        self.layoutGpio.addWidget(buttonPinOff, 2, 2, 1, 2)
+        self.layoutGpio.addWidget(buttonReadPin, 3, 0, 1, -1)
 
-        self.layoutFrameControl.addWidget(buttonHelp, 7, 0, 1, 2)
-        self.layoutFrameControl.addWidget(buttonStats, 7, 2, 1, 2)
-        self.layoutFrameControl.addWidget(labelTitleRtc, 8, 0, 1, -1)
+        # General info
+        self.layoutGeneral.addWidget(labelTitleGeneralInfo, 0, 0, 1, -1)
+        self.layoutGeneral.addWidget(buttonHeap, 1, 0, 1, 2)
+        self.layoutGeneral.addWidget(buttonTicks, 1, 2, 1, 2)
+        self.layoutGeneral.addWidget(buttonClk, 2, 0, 1, 2)
+        self.layoutGeneral.addWidget(buttonVersion, 2, 2, 1, 2)
+        self.layoutGeneral.addWidget(buttonHelp, 3, 0, 1, 2)
+        self.layoutGeneral.addWidget(buttonStats, 3, 2, 1, 2)
 
         # RTC
-        self.layoutFrameControl.addWidget(labelRtcHr, 9, 0)
-        self.layoutFrameControl.addWidget(self.textRtcHr, 9, 1)
-        self.layoutFrameControl.addWidget(labelRctMin, 9, 2)
-        self.layoutFrameControl.addWidget(self.textRtcMin, 9, 3)
-        self.layoutFrameControl.addWidget(buttonSetTime, 10, 0, 1, 2)
-        self.layoutFrameControl.addWidget(buttonGetTime, 10, 2, 1, 2)
+        self.layoutRtc.addWidget(labelTitleRtc, 0, 0, 1, -1)
+        self.layoutRtc.addWidget(labelRtcHr, 1, 0)
+        self.layoutRtc.addWidget(self.textRtcHr, 1, 1)
+        self.layoutRtc.addWidget(labelRctMin, 1, 2)
+        self.layoutRtc.addWidget(self.textRtcMin, 1, 3)
+        self.layoutRtc.addWidget(buttonSetTime, 2, 0, 1, 2)
+        self.layoutRtc.addWidget(buttonGetTime, 2, 2, 1, 2)
 
         # PWM
-        self.layoutFrameControl.addWidget(labelTitlePwm, 11, 0, 1, -1)
-        self.layoutFrameControl.addWidget(labelPwmFreq, 12, 0)
-        self.layoutFrameControl.addWidget(self.textPwmFreq, 12, 1)
-        self.layoutFrameControl.addWidget(labelPwmDuty, 12, 2)
-        self.layoutFrameControl.addWidget(self.textPwmDuty, 12, 3)
-        self.layoutFrameControl.addWidget(buttonPwmSetFreqDuty, 13, 0, 1, -1)
-
-        self.layoutFrameControl.addWidget(labelPwmChannel, 14, 1)
-        self.layoutFrameControl.addWidget(self.comboBoxPwmChannels, 14, 2, 1, -1)
-        self.layoutFrameControl.addWidget(buttonPwmMeasure, 15, 0, 1, -1)
+        self.layoutPwm.addWidget(labelTitlePwm, 0, 0, 1, -1)
+        self.layoutPwm.addWidget(labelPwmFreq, 1, 0)
+        self.layoutPwm.addWidget(self.textPwmFreq, 1, 1)
+        self.layoutPwm.addWidget(labelPwmDuty, 1, 2)
+        self.layoutPwm.addWidget(self.textPwmDuty, 1, 3)
+        self.layoutPwm.addWidget(buttonPwmSetFreqDuty, 2, 0, 1, -1)
+        self.layoutPwm.addWidget(labelPwmChannel, 3, 0)
+        self.layoutPwm.addWidget(self.comboBoxPwmChannels, 3, 2, 1, -1)
+        self.layoutPwm.addWidget(buttonPwmMeasure, 4, 0, 1, -1)
 
     def slotPwmStartMeasure(self):
         self.writeToLog("Not implemented yet :)\n", 'yellow')
@@ -632,6 +633,41 @@ class GuiCli(AppMainWindow):
         frame.setLayout(self.layoutFrameControl)
         self.gridLayout.addWidget(frame, 0, 0, -1, 1)
 
+        # Frame: Frame for holding widgets to GPIO handling
+        frame = QFrame()
+        frame.setStyleSheet(self.defaultFrameStyle)
+        frame.setMaximumHeight(140)
+        self.layoutGpio = QGridLayout()
+        frame.setLayout(self.layoutGpio)
+        self.layoutFrameControl.addWidget(frame, 0, 0)
+
+        # Frame: Frame for holding widgets to general info
+        frame = QFrame()
+        frame.setStyleSheet(self.defaultFrameStyle)
+        frame.setMaximumWidth(self.defaultControlFrameSize)
+        frame.setMaximumHeight(180)
+        self.layoutGeneral = QGridLayout()
+        frame.setLayout(self.layoutGeneral)
+        self.layoutFrameControl.addWidget(frame, 1, 0)
+
+        # Frame: Frame for holding widgets to RTC
+        frame = QFrame()
+        frame.setStyleSheet(self.defaultFrameStyle)
+        frame.setMaximumWidth(self.defaultControlFrameSize)
+        frame.setMaximumHeight(180)
+        self.layoutRtc = QGridLayout()
+        frame.setLayout(self.layoutRtc)
+        self.layoutFrameControl.addWidget(frame, 2, 0)
+
+        # Frame: Frame for holding widgets to PWM
+        frame = QFrame()
+        frame.setStyleSheet(self.defaultFrameStyle)
+        frame.setMaximumWidth(self.defaultControlFrameSize)
+        frame.setMaximumHeight(180)
+        self.layoutPwm = QGridLayout()
+        frame.setLayout(self.layoutPwm)
+        self.layoutFrameControl.addWidget(frame, 3, 0)
+
         # Frame: Frame for logs and data visualization
         frame = QFrame()
         frame.setStyleSheet(self.defaultFrameStyle)
@@ -647,7 +683,6 @@ class GuiCli(AppMainWindow):
         self.layoutPlots = QGridLayout()
         frame.setLayout(self.layoutPlots)
         self.gridLayout.addWidget(frame, 1, 1)
-
 
     #############################################################
     #                    START OF SLOT FUNCTIONS
