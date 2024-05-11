@@ -69,8 +69,6 @@ class GuiCli(AppMainWindow):
         # Initialize all layouts attached to the main window
         self.initLayouts()
 
-        # Initialize menu bar
-        self.initMenuBar()
 
         # Initialize status bar
         self.statusBarWidget = QStatusBar()
@@ -82,8 +80,10 @@ class GuiCli(AppMainWindow):
         self.statusBarWidget.setMaximumHeight(13)
         self.updateStatusBar("Disconnected", "yellow")
 
+        # Initialize menu bar
+        # self.initMenuBar()
         # Toolbar
-        # self.initToolBar()
+        self.initToolBar()
 
         # Initialize two main section:
         # 1. Section for buttons to send micro requests/cmds
@@ -132,7 +132,7 @@ class GuiCli(AppMainWindow):
 
     def initToolBar(self):
         toolbar = QToolBar()
-        iconSize = 30
+        iconSize = 25
         toolbar.setIconSize(QSize(iconSize, iconSize))
         toolbar.setStyleSheet("QToolBar QToolButton:disabled { color: inherit; }")
 
@@ -142,7 +142,11 @@ class GuiCli(AppMainWindow):
 
         # Create actions for general settings
         actionSettings = self.aWidgets.newAction(self, "&Settings", self.appRootPath + self.iconPaths['settings'], self.actionSettings)
-        actionSettings.setToolTip("<font color='back'>Settings</font>")
+        actionSettings.setToolTip("<font color='back'>Serial device</font>")
+
+        # Create help action
+        actionHelp = self.aWidgets.newAction(self, "&Help", self.appRootPath + self.iconPaths['help'], self.actionHelp)
+        actionHelp.setToolTip("<font color='black'>General help</font>")
 
         spinBoxLogFontSize = QSpinBox(self)
         spinBoxLogFontSize.setMinimumWidth(65)
@@ -161,8 +165,11 @@ class GuiCli(AppMainWindow):
         # Add all actions to the toolbar
         toolbar.addAction(actionSaveLog)
         toolbar.addAction(actionSettings)
-        toolbar.addAction(actionChangeLogFontSize)
-        toolbar.addAction(actionFontSize)
+        toolbar.addAction(actionHelp)
+
+        # toolbar.setMaximumHeight(30)
+        # toolbar.addAction(actionChangeLogFontSize)
+        # toolbar.addAction(actionFontSize)
 
         toolbar.setStyleSheet(f'background-color: {self.defaultToolbarBg} ; color: {self.defaultToolbarColor}')
         # toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
@@ -593,8 +600,8 @@ class GuiCli(AppMainWindow):
     def initMainWindow(self, appRootPath, title, w, h):
         """ Set default main windows properties  """
         self.centerWindow()
-        self.setMinimumSize(w, h)
-        # self.setFixedSize(w, h)
+        # self.setMinimumSize(w, h)
+        self.setFixedSize(w, h)
         self.setWindowTitle(title + f" v{self.appVersion['major']}.{self.appVersion['minor']}")
         self.setWindowIcon(QIcon(appRootPath + self.iconPaths["mainIcon"]))
         self.setStyleSheet(self.styles['mainWindow'])
@@ -743,6 +750,11 @@ class GuiCli(AppMainWindow):
         except Exception as e:
             self.showErrorMessage(f'Error{e}')
 
+    def closeEvent(self, event):
+        if self.micro.isOpen():
+            self.micro.close()
+        print("Closing..")
+        event.accept()
     def slotButtonDisconnectPort(self):
         try:
             self.micro.close()

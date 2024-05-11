@@ -48,6 +48,7 @@ class AppMainWindow(QMainWindow):
                     "freq":"/img/freq.png",
                     "setTime":"/img/setTime.png",
                     "getTime":"/img/getTime.png",
+                    "help":"/img/help.png",
                 }
     styles = {
                 "button":"""

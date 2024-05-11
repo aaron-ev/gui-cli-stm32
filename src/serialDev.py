@@ -69,6 +69,8 @@ class ThreadSerialDev(QThread):
             self.wait()
         if self.serialDev is not None and self.serialDev.is_open:
             self.serialDev.close()
+            if self.serialDev.is_open:
+                raise Exception("Serial device could not be closed")
 
     def stop(self):
         self.wait()
