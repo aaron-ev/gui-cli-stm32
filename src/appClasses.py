@@ -349,38 +349,72 @@ class AWidgets():
 
 class ASettings(QDialog):
     maxSize = (330, 190)
-    newFolderBsClient = None
-    newCompilationResultsDir = None
-    defaultLabelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
     labelPointSize = 12
+    labelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
     tabStyle = ("QTabWidget { background-color: #1f1f1f; }"
                 "QTabWidget::pane { background-color: black; }"
                 "QTabBar::tab { color: white; background-color: black; }"
                 "QTabBar::tab:selected { background-color: gray; }"
-                )
+               )
 
     def __init__(self, appRootPath, iconPaths, styles):
         super().__init__()
         self.iconPaths = iconPaths
         self.appRootPath = appRootPath
-        self.initFonts()
+        self.aWidgets = AWidgets()
+
+        #Initialize main window and all tabs needed
+        self.initTabs()
         self.initWindow(appRootPath, iconPaths, styles)
-        aWidgets = AWidgets()
-        buttonApply = QPushButton("&Apply")
-        buttonCancel = QPushButton("&Cancel")
-        buttonApply.setFixedWidth(140)
-        buttonCancel.setFixedWidth(140)
-        buttonApply.clicked.connect(self.apply)
-        buttonCancel.clicked.connect(self.cancel)
+
+    def initWindow(self, appRootPath, iconPaths, styles):
+        # Set window properties
+        self.setWindowTitle("Settings")
+        self.setStyleSheet(styles['dialog'])
+        self.setWindowIcon(QIcon(appRootPath + iconPaths['settings']))
+        self.setFixedSize(self.maxSize[0], self.maxSize[1])
+
+        # Initialize apply/cancel buttons
+        applyButton = QPushButton("&Apply")
+        cancelButton = QPushButton("&Cancel")
+        applyButton.setFixedWidth(140)
+        cancelButton.setFixedWidth(140)
+        applyButton.clicked.connect(self.apply)
+        cancelButton.clicked.connect(self.cancel)
+
+        # Set main layout
+        gridLayout = QGridLayout()
+        self.setLayout(gridLayout)
+        gridLayout.addWidget(self.mainTab, 0, 0)
+        gridLayout.addWidget(applyButton, 1, 0)
+        gridLayout.addWidget(cancelButton, 1, 1)
+
+    def initTabs(self):
+        # Initialize main tab widget
+        self.mainTab = QTabWidget()
+        self.mainTab.setFixedWidth(self.maxSize[0])
+        self.mainTab.setStyleSheet(self.tabStyle)
+
+        # Initialize tab for serial settings
+        self.initSerialTab(self.mainTab)
+
+    def initSerialTab(self, tabWidget):
+        serialLayout = QGridLayout()
+
+        tabSerial = QWidget()
+        tabSerial.setLayout(serialLayout)
+        tabSerial.setStyleSheet("background-color: #1f1f1f;")
+        # tabSerial.setContentsMargins(10,10,10,10)
+        tabWidget.addTab(tabSerial, "Serial device")
 
         # Create labels
-        labelSerialConfig = aWidgets.newLabel("Settings", self.labelPointSize, self.defaultLabelStyle)
-        labelDataLen = aWidgets.newLabel("Data length", self.labelPointSize, self.defaultLabelStyle)
-        labelStopBits = aWidgets.newLabel("Stop bits", self.labelPointSize, self.defaultLabelStyle)
+        labelSerialConfig = self.aWidgets.newLabel("Settings", self.labelPointSize, self.labelStyle)
+        labelDataLen = self.aWidgets.newLabel("Data length", self.labelPointSize, self.labelStyle)
+        labelStopBits = self.aWidgets.newLabel("Stop bits", self.labelPointSize, self.labelStyle)
 
-        # Comboboxes
-        self.comboboxDataLen = aWidgets.newComboBox()
-        self.comboboxStopBits = aWidgets.newComboBox()
+        # Create comboboxes
+        self.comboboxDataLen = self.aWidgets.newComboBox()
+        self.comboboxStopBits = self.aWidgets.newComboBox()
 
         # Set supported data lengths
         self.comboboxDataLen.addItem("8")
@@ -392,32 +426,6 @@ class ASettings(QDialog):
         self.comboboxStopBits.addItem("2")
         self.stopBitsPrevState = self.comboboxStopBits.currentText()
 
-        # Layout for main dialog
-        gridLayout = QGridLayout()
-
-        # Layouts for each tab
-        serialLayout = QGridLayout()
-
-        self.setLayout(gridLayout)
-
-        # Initialize tabs
-        self.tabs = QTabWidget()
-        self.tabs.setFixedWidth(self.maxSize[0])
-        self.tabs.setStyleSheet(self.tabStyle)
-        self.tabSerial = QWidget()
-        self.tabSerial.setLayout(serialLayout)
-        self.tabSerial.setStyleSheet("background-color: #1f1f1f;")
-        self.tabSerial.setContentsMargins(10,10,10,10)
-
-        self.tabGeneral = QWidget()
-        self.tabs.addTab(self.tabSerial, "Serial device")
-        # self.tabs.addTab(self.tabGeneral, "General")
-
-        # Create layout and add widgets to it
-        gridLayout.addWidget(self.tabs, 0, 0)
-        gridLayout.addWidget(buttonApply, 1, 0)
-        gridLayout.addWidget(buttonCancel, 1, 1)
-
         # Add widgets to serial tab
         serialLayout.addWidget(labelSerialConfig, 0, 0, 1, -1)
         serialLayout.addWidget(labelDataLen, 1, 0)
@@ -425,33 +433,8 @@ class ASettings(QDialog):
         serialLayout.addWidget(labelStopBits, 2, 0)
         serialLayout.addWidget(self.comboboxStopBits, 2, 1)
 
-    def initWindow(self, appRootPath, iconPaths, styles):
-        self.setWindowTitle("Settings")
-        self.setStyleSheet(styles['dialog'])
-        self.setWindowIcon(QIcon(appRootPath + iconPaths['settings']))
-        self.setFixedSize(self.maxSize[0], self.maxSize[1])
-
-    def initFonts(self):
-        self.buttonsFont = QFont()
-        self.buttonsFont.setFamily('Helvetica')
-        self.buttonsFont.setPointSize(10)
-
     def apply(self):
         self.accept()
-
-    def saveSettings(self):
-        pass
-        # # Save BS client path
-        # if self.newFolderBsClient is not None:
-        #     self.config.write("paths", "bsclient", self.newFolderBsClient)
-
-        # # Save compilation results path
-        # if self.newCompilationResultsDir is not None:
-        #     self.config.write("paths", "compilationresults", self.newCompilationResultsDir)
-
-        # # Save notification enable/disable flag
-        # if self.notiRegState is not None:
-        #     self.config.write("notification", "isenable", self.notiRegState)
 
     def cancel(self):
         # Restore previous state
