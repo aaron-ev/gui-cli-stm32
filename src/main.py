@@ -24,26 +24,36 @@ matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
-APP_WIDTH = 820
-APP_HIGHT = 680
+APP_WIDTH = 920
+APP_HIGHT = 880
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
         super(MplCanvas, self).__init__(fig)
+        self.axes.set_facecolor('#2E2E2E')
+        self.setStyleSheet("background-color: white;")  # Black
 
 class GuiCli(AppMainWindow):
     appVersion = {'major': '1', 'minor':'0'}
-    defaultFrameStyle = "QFrame { background-color: #1f1f1f; border-radius: 10px; border: 2px solid #333; }"
-    defaultLabelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
     buttonSize = (110, 30)
-    defaultControlFrameSize = 270
-    defaultLogFrameSize = 200
+    defaultControlFrameSize = 320
+    defaultLogFrameSize = 380
     labelPointSize = 12
-    defaultToolbarBg = "#1f1f1f"
-    defaultToolbarColor = "white"
-    textLogHightSize = 220
+    textLogHightSize = 110
+    maxPlotFrameHight = 320
+    listWidgets = {
+                   'frame':[],
+                   'button': [],
+                   'line': [],
+                   'label':[],
+                   'combobox':[],
+                   'textBox':[],
+                   'text':[],
+                   'toolbar':[],
+                   }
+    currentTheme = 'dark'
 
     def __init__(self, title, w, h):
         super().__init__()
@@ -64,21 +74,21 @@ class GuiCli(AppMainWindow):
         self.buttonsFont.setPointSize(self.buttonFontSize)
 
         # Object to save user settings
-        self.settings = ASettings(self.appRootPath, self.iconPaths, self.styles)
+        self.settings = ASettings(self.appRootPath, self.iconPaths)
 
         # Initialize all layouts attached to the main window
         self.initLayouts()
 
-
         # Initialize status bar
         self.statusBarWidget = QStatusBar()
         self.setStatusBar(self.statusBarWidget)
-        self.statusBarWidget.setStyleSheet("color: white;")
+        # self.statusBarWidget.setStyleSheet("color: white;")
         font = QFont()
         font.setPointSize(10)
         self.statusBarWidget.setFont(font)
         self.statusBarWidget.setMaximumHeight(13)
         self.updateStatusBar("Serial device: disconnected", "yellow")
+        # self.listWidgets['statusbar'] = self.statusBarWidget
 
         # Initialize menu bar
         # self.initMenuBar()
@@ -100,12 +110,22 @@ class GuiCli(AppMainWindow):
         # self.writeToLog("\t\t<Ready to start, select a serial port>\n", 'yellow')
 
         # Initialize event loop by calling show method
+        self.applyTheme(self.currentTheme)
         self.show()
+
+    def applyTheme(self, themeStr):
+        theme = self.themes[themeStr.lower()]
+
+        self.setStyleSheet(theme['mainWindow'])
+        for key in self.listWidgets:
+            print(key)
+            for widget in self.listWidgets[key]:
+                widget.setStyleSheet(theme[key])
 
     def initMenuBar(self):
         menuBar = QMenuBar()
         # Set default style
-        menuBar.setStyleSheet(self.styles['menuBar'])
+        # menuBar.setStyleSheet(self.styles['menuBar'])
 
         # Create bar options
         menuBarSave= menuBar.addMenu("&Save")
@@ -134,7 +154,8 @@ class GuiCli(AppMainWindow):
         toolbar = QToolBar()
         iconSize = 20
         toolbar.setIconSize(QSize(iconSize, iconSize))
-        toolbar.setStyleSheet("QToolBar QToolButton:disabled { color: inherit; }")
+        # toolbar.setStyleSheet("QToolBar QToolButton:disabled { color: inherit; }")
+        self.listWidgets['toolbar'].append(toolbar)
 
         # Create actions for saving the log
         actionSaveLog = self.aWidgets.newAction(self, "&Save log", self.appRootPath + self.iconPaths['save'], self.actionSaveLog)
@@ -148,18 +169,18 @@ class GuiCli(AppMainWindow):
         actionHelp = self.aWidgets.newAction(self, "&Help", self.appRootPath + self.iconPaths['help'], self.actionHelp)
         actionHelp.setToolTip("<font color='black'>General help</font>")
 
-        spinBoxLogFontSize = QSpinBox(self)
-        spinBoxLogFontSize.setMinimumWidth(65)
-        spinBoxLogFontSize.setMinimumHeight(25)
-        spinBoxLogFontSize.setMinimum(8)
-        spinBoxLogFontSize.setMaximum(24)
-        spinBoxLogFontSize.setValue(10)
-        spinBoxLogFontSize.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        spinBoxLogFontSize.valueChanged.connect(self.slotSpinBoxLogValueChanged)
+        # spinBoxLogFontSize = QSpinBox(self)
+        # spinBoxLogFontSize.setMinimumWidth(65)
+        # spinBoxLogFontSize.setMinimumHeight(25)
+        # spinBoxLogFontSize.setMinimum(8)
+        # spinBoxLogFontSize.setMaximum(24)
+        # spinBoxLogFontSize.setValue(10)
+        # spinBoxLogFontSize.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # spinBoxLogFontSize.valueChanged.connect(self.slotSpinBoxLogValueChanged)
 
         iconSpinBoxForLogFontSize = QIcon(self.iconPaths["fontSize"])
-        actionChangeLogFontSize = QWidgetAction(self)
-        actionChangeLogFontSize.setDefaultWidget(spinBoxLogFontSize)
+        # actionChangeLogFontSize = QWidgetAction(self)
+        # actionChangeLogFontSize.setDefaultWidget(spinBoxLogFontSize)
         actionFontSize = self.aWidgets.newAction(self, "Font size", self.appRootPath + self.iconPaths['fontSize'], None)
 
         # Add all actions to the toolbar
@@ -171,7 +192,6 @@ class GuiCli(AppMainWindow):
         # toolbar.addAction(actionChangeLogFontSize)
         # toolbar.addAction(actionFontSize)
 
-        toolbar.setStyleSheet(f'background-color: {self.defaultToolbarBg} ; color: {self.defaultToolbarColor}')
         # toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         toolbar.setMovable(False)
 
@@ -198,6 +218,9 @@ class GuiCli(AppMainWindow):
     def actionSettings(self):
         if self.settings.exec_():
             self.writeToLog("Apply event\n")
+            theme = self.settings.getTheme()
+            self.applyTheme(theme)
+            self.currentTheme = theme
 
     def slotSpinBoxLogValueChanged(self, newValue):
         font = self.textBoxLog.font()
@@ -220,7 +243,12 @@ class GuiCli(AppMainWindow):
             self.logQueue.get()
 
     def callbackMicroReadData(self, data):
-        self.writeToLog(data)
+        if self.currentTheme.lower() == "dark":
+            color = 'white'
+        else:
+            color = 'black'
+
+        self.writeToLog(data, color)
         if self.logQueue.full():
             self.writeToLog("Can't log more data, queue is full\n", 'red')
         else:
@@ -241,13 +269,17 @@ class GuiCli(AppMainWindow):
     #                    START OF INIT FUNCTIONS
     ##3###########################################################
     def initLogSection(self):
-        labelPort = self.aWidgets.newLabel("Port", self.labelPointSize, self.defaultLabelStyle)
-        labelBaudRate = self.aWidgets.newLabel("Baud rate", self.labelPointSize, self.defaultLabelStyle)
-        # labelTitlePlot = self.aWidgets.newLabel("Mat plot", self.labelPointSize, self.defaultLabelStyle)
+        labelPort = self.aWidgets.newLabel("Port", self.labelPointSize, None)
+        labelBaudRate = self.aWidgets.newLabel("Baud rate", self.labelPointSize, None)
+        # labelTitlePlot = self.aWidgets.newLabel("Mat plot", self.labelPointSize, None)
+        self.listWidgets['label'].append(labelPort)
+        self.listWidgets['label'].append(labelBaudRate)
 
         # Create combobox for sandboxes
         self.comboBoxComPorts = self.aWidgets.newComboBox(self.slotComboBoxComPorts)
         self.comboBoxBaudrates = self.aWidgets.newComboBox()
+        self.listWidgets['combobox'].append(self.comboBoxComPorts)
+        self.listWidgets['combobox'].append(self.comboBoxBaudrates)
 
         # Update combobox with available ports
         self.ports = serial.tools.list_ports.comports()
@@ -262,15 +294,18 @@ class GuiCli(AppMainWindow):
 
         # Dock: Dock for any message from serial port
         self.dockLog, self.textBoxLog = self.aWidgets.newDock("Log", "dock")
-        self.dockLog.setFixedHeight(self.textLogHightSize)
+        # self.dockLog.setFixedHeight(30)
+        # self.textBoxLog.setFixedHeight(50)
+
+        self.listWidgets['text'].append(self.textBoxLog)
 
         # Button: Connect to serial port
         self.buttonConnectDisconnect = self.aWidgets.newButton("Start monitoring",
                                                             self.slotConnectDisconnect,
                                                             self.buttonsFont,
                                                             self.appRootPath + self.iconPaths['serialPort'], \
-                                                            None,
-                                                            self.styles['button']
+                                                            (220, 30),
+                                                            None
                                                               )
         # Button: Refresh the serial port list
         buttonRefresh = self.aWidgets.newButton("",
@@ -278,11 +313,13 @@ class GuiCli(AppMainWindow):
                                                   self.buttonsFont,
                                                   self.appRootPath + self.iconPaths['refresh'],
                                                   (30, 25),
-                                                  self.styles['button']
+                                                  None
                                                 )
+        self.listWidgets['button'].append(self.buttonConnectDisconnect)
+        self.listWidgets['button'].append(buttonRefresh)
 
         # Matplot
-        sc = MplCanvas(self, width=5, height=4, dpi=100)
+        sc = MplCanvas(self, width=3, height=3, dpi=100)
         sc.axes.set_xlabel("Time(s)")
         sc.axes.set_ylabel("Voltage(V)")
         sc.axes.set_title("Signal")
@@ -297,7 +334,7 @@ class GuiCli(AppMainWindow):
         self.layoutLog.addWidget(buttonRefresh, 1, 2)
         self.layoutLog.addWidget(labelBaudRate, 1, 3)
         self.layoutLog.addWidget(self.comboBoxBaudrates, 1, 4)
-        self.layoutLog.addWidget(self.buttonConnectDisconnect, 2, 0, 1, -1)
+        self.layoutLog.addWidget(self.buttonConnectDisconnect, 2, 0, 1, -1, alignment = Qt.AlignmentFlag.AlignCenter)
         self.layoutLog.addWidget(self.dockLog, 3, 0, 1, -1)
         # self.layoutLog.addWidget(labelTitlePlot, 4, 0, 1, -1)
 
@@ -305,19 +342,30 @@ class GuiCli(AppMainWindow):
         self.layoutPlots.addWidget(sc, 1, 0)
 
     def initControlSection(self):
-        labelTitleGpioRW = self.aWidgets.newLabel("GPIO Write/Read", self.labelPointSize, self.defaultLabelStyle)
-        labelGpio= self.aWidgets.newLabel("GPIO", 10, self.defaultLabelStyle)
-        labelPin = self.aWidgets.newLabel("Pin", 10, self.defaultLabelStyle)
-        labelTitleGeneralInfo = self.aWidgets.newLabel("General information ", self.labelPointSize, self.defaultLabelStyle)
-        labelTitleRtc = self.aWidgets.newLabel("RTC", self.labelPointSize, self.defaultLabelStyle)
-        labelRtcHr = self.aWidgets.newLabel("Hr", 10, self.defaultLabelStyle)
-        labelRctMin = self.aWidgets.newLabel("Min", 10, self.defaultLabelStyle)
-        labelTitlePwm = self.aWidgets.newLabel("PWM", self.labelPointSize, self.defaultLabelStyle)
-        labelPwmFreq  = self.aWidgets.newLabel("Freq", 10, self.defaultLabelStyle)
-        labelPwmDuty  = self.aWidgets.newLabel("Duty", 10, self.defaultLabelStyle)
+        labelTitleGpioRW = self.aWidgets.newLabel("GPIO Write/Read", self.labelPointSize, None)
+        labelGpio= self.aWidgets.newLabel("GPIO", 10, None)
+        labelPin = self.aWidgets.newLabel("Pin", 10, None)
+        labelTitleGeneralInfo = self.aWidgets.newLabel("General information ", self.labelPointSize, None)
+        labelTitleRtc = self.aWidgets.newLabel("RTC", self.labelPointSize, None)
+        labelRtcHr = self.aWidgets.newLabel("Hr", 10, None)
+        labelRctMin = self.aWidgets.newLabel("Min", 10, None)
+        labelTitlePwm = self.aWidgets.newLabel("PWM", self.labelPointSize, None)
+        labelPwmFreq  = self.aWidgets.newLabel("Freq", 10, None)
+        labelPwmDuty  = self.aWidgets.newLabel("Duty", 10, None)
         # labelTitlePwm.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        labelPwmChannel = self.aWidgets.newLabel("Channel", self.labelPointSize, self.defaultLabelStyle)
+        labelPwmChannel = self.aWidgets.newLabel("Channel", self.labelPointSize, None)
 
+        self.listWidgets['label'].append(labelTitleGpioRW)
+        self.listWidgets['label'].append(labelGpio)
+        self.listWidgets['label'].append(labelPin)
+        self.listWidgets['label'].append(labelTitleGeneralInfo)
+        self.listWidgets['label'].append(labelTitleRtc)
+        self.listWidgets['label'].append(labelRtcHr)
+        self.listWidgets['label'].append(labelRctMin)
+        self.listWidgets['label'].append(labelTitlePwm)
+        self.listWidgets['label'].append(labelPwmFreq)
+        self.listWidgets['label'].append(labelPwmDuty)
+        self.listWidgets['label'].append(labelPwmChannel)
 
         # Combobox: GPIOS
         self.comboBoxGpios = self.aWidgets.newComboBox()
@@ -336,7 +384,7 @@ class GuiCli(AppMainWindow):
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['powerOn'],
                                             self.buttonSize,
-                                            self.styles['button']
+                                            None
                                             )
         # Button: Set to OFF
         buttonPinOff= self.aWidgets.newButton("Off",
@@ -344,7 +392,7 @@ class GuiCli(AppMainWindow):
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['powerOff'],
                                             self.buttonSize,
-                                            self.styles['button']
+                                            None
                                             )
         # Button: Read from GPIO pin
         buttonReadPin = self.aWidgets.newButton("Read pin",
@@ -352,7 +400,7 @@ class GuiCli(AppMainWindow):
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['refresh'],
                                             self.buttonSize,
-                                            self.styles['button']
+                                            None
                                             )
         # Button: Get the project version
         buttonVersion = self.aWidgets.newButton("Version",
@@ -360,42 +408,38 @@ class GuiCli(AppMainWindow):
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['version'],
                                             self.buttonSize,
-                                            self.styles['button']
+                                            None
                                             )
         buttonHelp = self.aWidgets.newButton("Help",
                                             self.slotHelp,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['info'],
                                             self.buttonSize,
-                                            self.styles['button']
+                                            None
                                             )
         buttonHeap = self.aWidgets.newButton("Heap",
                                             self.slotHeap,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['ram'],
                                             self.buttonSize,
-                                            self.styles['button']
                                             )
         buttonTicks = self.aWidgets.newButton("Ticks",
                                             self.slotTicks,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['freq'],
                                             self.buttonSize,
-                                            self.styles['button']
                                             )
         buttonClk = self.aWidgets.newButton("Clock",
                                             self.slotClk,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['clk'],
                                             self.buttonSize,
-                                            self.styles['button']
                                             )
         buttonStats = self.aWidgets.newButton("Stats",
                                             self.slotStats,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['stats'],
                                             self.buttonSize,
-                                            self.styles['button']
                                             )
         self.textRtcHr = self.aWidgets.newLine(10)
         self.textRtcMin = self.aWidgets.newLine(10)
@@ -405,14 +449,12 @@ class GuiCli(AppMainWindow):
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['setTime'],
                                             self.buttonSize,
-                                            self.styles['button']
                                             )
         buttonGetTime = self.aWidgets.newButton("Get time",
                                             self.slotRtcGetTime,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['getTime'],
                                             self.buttonSize,
-                                            self.styles['button']
                                             )
         # Combobox: PWM channels
         self.comboBoxPwmChannels = self.aWidgets.newComboBox()
@@ -421,15 +463,12 @@ class GuiCli(AppMainWindow):
 
 
         # Widgets to set PWM frequency and duty cycle
-        self.textPwmFreq = self.aWidgets.newLine(12)
-        self.textPwmDuty = self.aWidgets.newLine(12)
+        self.textPwmFreq = self.aWidgets.newLine(10)
+        self.textPwmDuty = self.aWidgets.newLine(10)
         # Button: Set frequency and duty cycle
         buttonPwmSetFreqDuty = self.aWidgets.newButton("Set freq/duty",
                                             self.slotPwmSetFreqDuty,
                                             self.buttonsFont,
-                                            None,
-                                            None,
-                                            self.styles['button']
                                             )
 
         # Button: Start measure
@@ -437,10 +476,30 @@ class GuiCli(AppMainWindow):
                                             self.slotPwmStartMeasure,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['stats'],
-                                            None,
-                                            self.styles['button']
                                             )
 
+
+        # Add widgets to the record of widgets
+        self.listWidgets['button'].append(buttonPinON)
+        self.listWidgets['button'].append(buttonPinOff)
+        self.listWidgets['button'].append(buttonReadPin)
+        self.listWidgets['button'].append(buttonVersion)
+        self.listWidgets['button'].append(buttonHelp)
+        self.listWidgets['button'].append(buttonHeap)
+        self.listWidgets['button'].append(buttonTicks)
+        self.listWidgets['button'].append(buttonClk)
+        self.listWidgets['button'].append(buttonStats)
+        self.listWidgets['button'].append(buttonSetTime)
+        self.listWidgets['button'].append(buttonGetTime)
+        self.listWidgets['button'].append(buttonPwmSetFreqDuty)
+        self.listWidgets['button'].append(buttonPwmMeasure)
+        self.listWidgets['combobox'].append(self.comboBoxGpios)
+        self.listWidgets['combobox'].append(self.comboBoxPins)
+        self.listWidgets['combobox'].append(self.comboBoxPwmChannels)
+        self.listWidgets['line'].append(self.textRtcHr)
+        self.listWidgets['line'].append(self.textRtcMin)
+        self.listWidgets['line'].append(self.textPwmFreq)
+        self.listWidgets['line'].append(self.textPwmDuty)
 
         # GPIO handling
         self.layoutGpio.addWidget(labelTitleGpioRW, 0, 0, 1, -1)
@@ -604,7 +663,6 @@ class GuiCli(AppMainWindow):
         self.setFixedSize(w, h)
         self.setWindowTitle(title + f" v{self.appVersion['major']}.{self.appVersion['minor']}")
         self.setWindowIcon(QIcon(appRootPath + self.iconPaths["mainIcon"]))
-        self.setStyleSheet(self.styles['mainWindow'])
 
     def initComboBoxes(self):
         # Create combobox for sandboxes
@@ -643,63 +701,78 @@ class GuiCli(AppMainWindow):
         self.setCentralWidget(self.centralWidget)
 
         # Frame: Frame for holding widgets for controlling the micro
-        frame = QFrame()
-        frame.setStyleSheet(self.defaultFrameStyle)
-        frame.setMaximumWidth(self.defaultControlFrameSize)
+        frame = QFrame(self)
+        # frame.setStyleSheet(self.defaultFrameStyle)
+        # frame.setMaximumWidth(self.defaultControlFrameSize)
         self.layoutFrameControl = QGridLayout()
         frame.setLayout(self.layoutFrameControl)
         self.gridLayout.addWidget(frame, 0, 0, -1, 1)
+        # self.listWidgets['frame'].append(frame)
 
         # Frame: Frame for holding widgets to GPIO handling
         frame = QFrame()
-        frame.setStyleSheet(self.defaultFrameStyle)
-        frame.setMaximumHeight(140)
+        # frame.setStyleSheet(self.defaultFrameStyle)
+        # frame.setMaximumHeight(140)
         self.layoutGpio = QGridLayout()
         frame.setLayout(self.layoutGpio)
         self.layoutFrameControl.addWidget(frame, 0, 0)
+        self.listWidgets['frame'].append(frame)
 
         # Frame: Frame for holding widgets to general info
         frame = QFrame()
-        frame.setStyleSheet(self.defaultFrameStyle)
-        frame.setMaximumWidth(self.defaultControlFrameSize)
-        frame.setMaximumHeight(180)
+        # frame.setStyleSheet(self.defaultFrameStyle)
+        # frame.setMaximumWidth(self.defaultControlFrameSize)
+        # frame.setMaximumHeight(180)
         self.layoutGeneral = QGridLayout()
         frame.setLayout(self.layoutGeneral)
         self.layoutFrameControl.addWidget(frame, 1, 0)
+        self.listWidgets['frame'].append(frame)
 
         # Frame: Frame for holding widgets to RTC
         frame = QFrame()
-        frame.setStyleSheet(self.defaultFrameStyle)
+        # frame.setStyleSheet(self.defaultFrameStyle)
         frame.setMaximumWidth(self.defaultControlFrameSize)
-        frame.setMaximumHeight(180)
+        # frame.setMaximumHeight(180)
         self.layoutRtc = QGridLayout()
         frame.setLayout(self.layoutRtc)
         self.layoutFrameControl.addWidget(frame, 2, 0)
+        self.listWidgets['frame'].append(frame)
 
         # Frame: Frame for holding widgets to PWM
         frame = QFrame()
-        frame.setStyleSheet(self.defaultFrameStyle)
+        # frame.setStyleSheet(self.defaultFrameStyle)
         frame.setMaximumWidth(self.defaultControlFrameSize)
-        frame.setMaximumHeight(180)
+        # frame.setMaximumHeight(320)
         self.layoutPwm = QGridLayout()
         frame.setLayout(self.layoutPwm)
         self.layoutFrameControl.addWidget(frame, 3, 0)
+        self.listWidgets['frame'].append(frame)
 
         # Frame: Frame for logs and data visualization
         frame = QFrame()
-        frame.setStyleSheet(self.defaultFrameStyle)
-        frame.setMinimumWidth(self.defaultLogFrameSize)
+        # frame.setStyleSheet(self.defaultFrameStyle)
+        frame.setMaximumHeight(self.defaultLogFrameSize)
         self.layoutLog = QGridLayout()
         frame.setLayout(self.layoutLog)
         self.gridLayout.addWidget(frame, 0, 1)
+        self.listWidgets['frame'].append(frame)
 
         # Frame: Plots
         frame = QFrame()
-        frame.setStyleSheet(self.defaultFrameStyle)
-        frame.setMinimumWidth(self.defaultLogFrameSize)
+        # frame.setStyleSheet(self.defaultFrameStyle)
+        # frame.setMaximumHeight(self.maxPlotFrameHight)
         self.layoutPlots = QGridLayout()
         frame.setLayout(self.layoutPlots)
         self.gridLayout.addWidget(frame, 1, 1)
+        frame.setStyleSheet( """ QFrame {
+                                background-color: white;
+                                border-radius: 10px;
+                                padding: 10px;
+                                }
+                            """
+                            )
+        # frame.setContentsMargins(0, 0 ,0, 0)
+        # self.listWidgets['frame'].append(frame)
 
     def updateStatusBar(self, text, color = 'white'):
         # Check if color is hex code
