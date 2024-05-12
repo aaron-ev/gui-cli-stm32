@@ -78,7 +78,7 @@ class GuiCli(AppMainWindow):
         font.setPointSize(10)
         self.statusBarWidget.setFont(font)
         self.statusBarWidget.setMaximumHeight(13)
-        self.updateStatusBar("Disconnected", "yellow")
+        self.updateStatusBar("Serial device: disconnected", "yellow")
 
         # Initialize menu bar
         # self.initMenuBar()
@@ -132,7 +132,7 @@ class GuiCli(AppMainWindow):
 
     def initToolBar(self):
         toolbar = QToolBar()
-        iconSize = 25
+        iconSize = 20
         toolbar.setIconSize(QSize(iconSize, iconSize))
         toolbar.setStyleSheet("QToolBar QToolButton:disabled { color: inherit; }")
 
@@ -727,14 +727,14 @@ class GuiCli(AppMainWindow):
             if self.micro.isOpen():
                 self.micro.close()
                 self.buttonConnectDisconnect.setText("Start monitoring")
-                # self.writeToLog(f'Disconnected from {portName}\n', 'yellow')
+                # self.writeToLog(f'Serial device: disconnected from {portName}\n', 'yellow')
 
                 # Update button border  color
                 self.prevStyle = self.buttonConnectDisconnect.styleSheet()
                 newStyle = self.updateBorderColor(self.prevStyle, "#555555")
                 self.buttonConnectDisconnect.setStyleSheet(newStyle)
 
-                self.updateStatusBar("Disconnected", "yellow")
+                self.updateStatusBar("Serial device: disconnected", "yellow")
 
             else:
                 self.micro.open(portName, baud, dataLen, parity, stopBits)
@@ -747,7 +747,7 @@ class GuiCli(AppMainWindow):
                 self.buttonConnectDisconnect.setStyleSheet(newStyle)
 
                 # Update status bar
-                self.updateStatusBar("Connected", "#77DD77")
+                self.updateStatusBar("Serial device: connected", "#77DD77")
         except Exception as e:
             self.showErrorMessage(f'Error{e}')
 
@@ -762,7 +762,7 @@ class GuiCli(AppMainWindow):
         except Exception as e:
             print(f'Error{e}')
 
-        self.writeToLog("Disconnected\n", 'yellow')
+        self.writeToLog("Serial device: disconnected\n", 'yellow')
 
     def writeToLog(self, text, color = 'white'):
         cursor = self.textBoxLog.textCursor()

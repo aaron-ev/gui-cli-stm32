@@ -349,7 +349,7 @@ class AWidgets():
         return action
 
 class ASettings(QDialog):
-    maxSize = (330, 220)
+    maxSize = (330, 180)
     labelPointSize = 12
     labelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
     tabStyle = ("QTabWidget { background-color: #1f1f1f; }"
@@ -412,7 +412,7 @@ class ASettings(QDialog):
         tabWidget.addTab(tabSerial, "Serial device")
 
         # Create labels
-        labelSerialConfig = self.aWidgets.newLabel("Settings", self.labelPointSize, self.labelStyle)
+        # labelSerialConfig = self.aWidgets.newLabel("Settings", self.labelPointSize, self.labelStyle)
         labelDataLen = self.aWidgets.newLabel("Data:", self.labelPointSize, self.labelStyle)
         labelParity = self.aWidgets.newLabel("Parity:", self.labelPointSize, self.labelStyle)
         labelStopBits = self.aWidgets.newLabel("Stop bits:", self.labelPointSize, self.labelStyle)
@@ -439,7 +439,7 @@ class ASettings(QDialog):
         self.parityPrevState = self.comboboxParity.currentText()
 
         # Add widgets to serial tab
-        serialLayout.addWidget(labelSerialConfig, 0, 0, 1, -1)
+        # serialLayout.addWidget(labelSerialConfig, 0, 0, 1, -1)
         serialLayout.addWidget(labelDataLen, 1, 0)
         serialLayout.addWidget(self.comboboxDataLen, 1, 1)
         serialLayout.addWidget(labelParity, 2, 0)
