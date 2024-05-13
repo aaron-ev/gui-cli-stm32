@@ -264,7 +264,9 @@ class AppMainWindow(QMainWindow):
                                 }
                                 QComboBox::down-arrow {
                                     background-color: #1f1f1f; /* Dark gray */
+                                    color: white;
                                 }
+                                QComboBox::item { color:white }
                             """,
                 "dialog":
                             """QDialog {
@@ -298,6 +300,7 @@ class AppMainWindow(QMainWindow):
                                 border: 1px solid #555555;
                                 border-radius: 10px;
                                 padding: 10px;
+                                color:white;
                                 }
                             """,
                 "toolbar":
@@ -308,9 +311,9 @@ class AppMainWindow(QMainWindow):
                                 }
                                 /* ToolButton */
                                 QToolBar QToolButton {
-                                    background-color: #f0f0f0;
+                                    background-color: #2C2C2C;
                                     color: #000000;
-                                    border: 1px solid #000000;
+                                    border: 1px solid #2C2C2C;
                                     padding: 5px 10px;
                                 }
                                 QToolBar QToolButton:hover {
@@ -323,29 +326,29 @@ class AppMainWindow(QMainWindow):
                 "mainWindow":
                             """
                                 QMainWindow {
-                                    background-color: #1f1f1f; /* Dark gray background */
+                                    background-color: #ffffff; /* Dark gray background */
                                     color: blue; /* Text color */
                                 }
                                 QMainWindow::separator {
                                     background-color: red; /* Change the color here */
                                     height: 1px; /* Set the height of the separator */
                                     margin: 2px; /* Set margin to zero */
-                                }
+                                }L
                             """,
                 "button":
                             """
                                 QPushButton {
-                                    background-color: #2E2E2E;
-                                    color: white;
-                                    border: 2px solid #555555;
+                                    background-color: #ADD8E6;
+                                    color: dark;
+                                    border: 2px solid #CCCCCC;
                                     border-radius: 5px; /* Rounded corners */
                                     padding: 4px 8px; /* Padding */
                                 }
                                 QPushButton:hover {
-                                    background-color: #3A3A3A; /* Darker gray background on hover */
+                                    background-color: #87CEEB; /* Darker gray background on hover */
                                 }
                                 QPushButton:pressed {
-                                    background-color: #4A4A4A; /* Pressed color */
+                                    background-color: #00BFFF; /* Pressed color */
                                 }
                             """,
                 "menuBar":
@@ -378,25 +381,26 @@ class AppMainWindow(QMainWindow):
                             """,
                 "line":
                             """ QLineEdit {
-                                background-color: #1f1f1f; /* Dark gray background */
-                                color: white; /* Text color */
-                                border: 2px solid #555555; /* Nice blue border color */
+                                background-color: #FFFFFF; /* Dark gray background */
+                                color: #1E1E1E; /* Text color */
+                                border: 2px solid #CCCCCC; /* Nice blue border color */
                                 border-radius: 5px; /* Rounded corners */
                                 padding: 5px 10px; /* Padding */
                                 }
                                 QLineEdit:hover {
-                                background-color: #3A3A3A; /* Darker gray background on hover */
+                                background-color: white; /* Darker gray background on hover */
                                 }
                             """,
                 "combobox":
                             """
                                 QComboBox {
-                                    background-color: #1f1f1f; /* Dark gray */
-                                    color: white; /* Default text */
+                                    background-color: #F0F0F0; /* Dark gray */
+                                    color: #1E1E1E; /* Default text */
                                     text-align: center;
                                 }
                                 QComboBox::down-arrow {
-                                    background-color: #1f1f1f; /* Dark gray */
+                                    background-color: #F0F0F0; /* Dark gray */
+                                    color: #1E1E1E; /* Arrow color */
                                 }
                             """,
                 "dialog":
@@ -407,16 +411,19 @@ class AppMainWindow(QMainWindow):
                             """,
                 "label":
                             """ QLabel {
-                                background-color: #1f1f1f;
-                                color: white;
-                                border: 1px solid  #1f1f1f;
+                                background-color: #F0F0F0;
+                                color: #1E1E1E;
+                                border: 1px solid  #F0F0F0;
                                 }
                             """,
                 "text":
                             """ QTextEdit {
-                                background-color: #1f1f1f;
-                                color: white;
-                                border: 1px solid #1f1f1f;
+                                background-color: white;
+                                color: black;
+                                border: 1px solid #CCCCCC;
+                                }
+                                QTextEdit:hover {
+                                    background-color: white;
                                 }
                             """,
                 "dock":
@@ -427,23 +434,23 @@ class AppMainWindow(QMainWindow):
                             """,
                 "frame":
                             """ QFrame {
-                                background-color: #1f1f1f;
-                                border: 1px solid #555555;
-                                border-radius: 10px;
-                                padding: 10px;
+                                background-color: #F0F0F0;
+                                border: 1px solid #CCCCCC;
+                                border-radius: 5px;
+                                padding: 5px;
                                 }
                             """,
                 "toolbar":
                             """
                                 /* ToolBar */
                                 QToolBar {
-                                    background-color: #2C2C2C;
+                                    background-color: #f0f0f0;
                                 }
                                 /* ToolButton */
                                 QToolBar QToolButton {
                                     background-color: #f0f0f0;
                                     color: #000000;
-                                    border: 1px solid #000000;
+                                    border: 1px solid #f0f0f0;
                                     padding: 5px 10px;
                                 }
                                 QToolBar QToolButton:hover {
@@ -451,106 +458,7 @@ class AppMainWindow(QMainWindow):
                                 }
                             """
                 }
-
     themes = {"dark": darkTheme, "light": lightTheme}
-    lightTheme = """
-                        QPushButton {
-                            background-color: #f0f0f0;
-                            color: #000000;
-                            border: 1px solid #000000;
-                            padding: 5px 10px;
-                        }
-                        QPushButton:hover {background-color: #d0d0d0;}
-                        QPushButton:pressed {background-color: #a0a0a0;}
-                        QMenuBar {
-                                background-color: #2C2C2C; /* Black background */
-                                color: white; /* White text color */
-                             }
-                        QMenuBar::item {
-                            background-color: #2C2C2C; /* Black background for menu items */
-                            color: #FFFFFF; /* White text color for menu items */
-                            padding: 4px 8px; /* Padding around menu items */
-                        }
-                        QMenuBar::item:selected {
-                            background-color: #2C2C2C ; /* Dark gray background for selected menu items */
-                        }
-                        QMenu {
-                            background-color: #2C2C2C; /* Black background for submenus */
-                            color: #FFFFFF; /* White text color for submenus */
-                            border: 1px solid #3A3A3A; /* White border for submenus */
-                        }
-                        QMenu::item {
-                            background-color: #2C2C2C; /* Black background for submenu items */
-                            color: #FFFFFF; /* White text color for submenu items */
-                        }
-                        QMenu::item:selected {
-                            background-color: #333333; /* Dark gray background for selected submenu items */
-                        }
-                        QLineEdit {
-                            background-color: white; /* Dark gray background */
-                            color: black; /* Text color */
-                            border: 2px solid #555555; /*
-                            border-radius: 5px; /* Rounded corners */
-                            padding: 5px 10px; /* Padding */
-                        }
-                        QLineEdit:hover {
-                            background-color: #3A3A3A; /* Darker gray background on hover */
-                        }
-                        QMainWindow {
-                            background-color: #ffffff; /* Dark gray background */
-                            color: blue; /* Text color */
-                        }
-                        QMainWindow::separator {
-                            background-color: red; /* Change the color here */
-                            height: 1px; /* Set the height of the separator */
-                            margin: 2px; /* Set margin to zero */
-                        }
-                        QComboBox {
-                                    background-color: #f0f0f0;
-                                    color: black;
-                                    text-align: center;
-                                   }
-                        QDialog {
-                            background-color: #1f1f1f; /* Dark gray background */
-                            color: white; /* Text color */
-                        }
-                        QLabel {
-                                background-color: #1f1f1f;
-                                border-radius: 1px;
-                                border: 1px solid #1f1f1f;
-                                color: black
-                                }
-                        QFrame {
-                background-color: white;
-                border: 1px solid #ccc;
-                border-radius: 10px;
-                padding: 10px;
-                        }
-                        /* QLabel inside QFrame */
-                        QFrame QLabel {
-                            color: blue;
-                        }
-                        /* QFrame:hover */
-                        QFrame:hover {
-                            background-color: blue;
-                        }
-                        /* ToolBar */
-                        QToolBar {
-                            background-color: #f0f0f0;
-                        }
-                        /* ToolButton */
-                        QToolBar QToolButton {
-                            background-color: #f0f0f0;
-                            color: #000000;
-                            border: 1px solid #000000;
-                            padding: 5px 10px;
-                        }
-                        QToolBar QToolButton:hover {
-                            background-color: #d0d0d0;
-                        }
-                        QToolBar QToolButton:pressed {background-color: #a0a0a0};
-                        QTextEdit {background-color: white; color: black;}
-                    """
 
     def __init__(self):
         super().__init__() # Allows the use of abstract class to work

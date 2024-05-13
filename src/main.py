@@ -32,17 +32,19 @@ class MplCanvas(FigureCanvasQTAgg):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
         super(MplCanvas, self).__init__(fig)
-        self.axes.set_facecolor('#2E2E2E')
+        # self.axes.set_facecolor('#2E2E2E')
         self.setStyleSheet("background-color: white;")  # Black
 
 class GuiCli(AppMainWindow):
     appVersion = {'major': '1', 'minor':'0'}
     buttonSize = (110, 30)
-    defaultControlFrameSize = 320
+    defaultControlFrameSize = 420
     defaultLogFrameSize = 380
     labelPointSize = 12
     textLogHightSize = 110
     maxPlotFrameHight = 320
+    maxControlFrameWidth = 320
+    maxControlFrameHight = 80
     listWidgets = {
                    'frame':[],
                    'button': [],
@@ -87,7 +89,7 @@ class GuiCli(AppMainWindow):
         font.setPointSize(10)
         self.statusBarWidget.setFont(font)
         self.statusBarWidget.setMaximumHeight(13)
-        self.updateStatusBar("Serial device: disconnected", "yellow")
+        self.updateStatusBar("Serial device: disconnected", "blue")
         # self.listWidgets['statusbar'] = self.statusBarWidget
 
         # Initialize menu bar
@@ -105,7 +107,11 @@ class GuiCli(AppMainWindow):
         self.logQueue = queue.Queue()
 
         # Display welcome message
-        self.writeToLog("Welcome to Micro CLI\n\n", 'green')
+        if self.currentTheme == 'dark':
+            self.writeToLog("Welcome to Micro CLI\n\n", 'white')
+        else:
+            self.writeToLog("Welcome to Micro CLI\n\n", 'dark')
+
         # self.writeToLog("\t\tWelcome to Micro CLI\n\n", 'green')
         # self.writeToLog("\t\t<Ready to start, select a serial port>\n", 'yellow')
 
@@ -116,11 +122,14 @@ class GuiCli(AppMainWindow):
     def applyTheme(self, themeStr):
         theme = self.themes[themeStr.lower()]
 
-        self.setStyleSheet(theme['mainWindow'])
         for key in self.listWidgets:
             print(key)
             for widget in self.listWidgets[key]:
                 widget.setStyleSheet(theme[key])
+        iconSize = 20
+        self.toolbar.setIconSize(QSize(iconSize, iconSize))
+        self.setStyleSheet(theme['mainWindow'])
+        self.currentTheme = themeStr.lower()
 
     def initMenuBar(self):
         menuBar = QMenuBar()
@@ -151,11 +160,11 @@ class GuiCli(AppMainWindow):
         self.writeToLog("Info not implemented yet\n")
 
     def initToolBar(self):
-        toolbar = QToolBar()
+        self.toolbar = QToolBar()
         iconSize = 20
-        toolbar.setIconSize(QSize(iconSize, iconSize))
-        # toolbar.setStyleSheet("QToolBar QToolButton:disabled { color: inherit; }")
-        self.listWidgets['toolbar'].append(toolbar)
+        self.toolbar.setIconSize(QSize(iconSize, iconSize))
+        # self.toolbar.setStyleSheet("QToolBar QToolButton:disabled { color: inherit; }")
+        self.listWidgets['toolbar'].append(self.toolbar)
 
         # Create actions for saving the log
         actionSaveLog = self.aWidgets.newAction(self, "&Save log", self.appRootPath + self.iconPaths['save'], self.actionSaveLog)
@@ -163,39 +172,23 @@ class GuiCli(AppMainWindow):
 
         # Create actions for general settings
         actionSettings = self.aWidgets.newAction(self, "&Settings", self.appRootPath + self.iconPaths['settings'], self.actionSettings)
-        actionSettings.setToolTip("<font color='back'>Serial device</font>")
+        actionSettings.setToolTip("<font color='back'>General settings</font>")
 
         # Create help action
         actionHelp = self.aWidgets.newAction(self, "&Help", self.appRootPath + self.iconPaths['help'], self.actionHelp)
         actionHelp.setToolTip("<font color='black'>General help</font>")
 
-        # spinBoxLogFontSize = QSpinBox(self)
-        # spinBoxLogFontSize.setMinimumWidth(65)
-        # spinBoxLogFontSize.setMinimumHeight(25)
-        # spinBoxLogFontSize.setMinimum(8)
-        # spinBoxLogFontSize.setMaximum(24)
-        # spinBoxLogFontSize.setValue(10)
-        # spinBoxLogFontSize.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # spinBoxLogFontSize.valueChanged.connect(self.slotSpinBoxLogValueChanged)
+        # Add all actions to the self.toolbar
+        self.toolbar.addAction(actionSaveLog)
+        self.toolbar.addAction(actionSettings)
+        self.toolbar.addAction(actionHelp)
 
-        iconSpinBoxForLogFontSize = QIcon(self.iconPaths["fontSize"])
-        # actionChangeLogFontSize = QWidgetAction(self)
-        # actionChangeLogFontSize.setDefaultWidget(spinBoxLogFontSize)
-        actionFontSize = self.aWidgets.newAction(self, "Font size", self.appRootPath + self.iconPaths['fontSize'], None)
+        self.toolbar.setMaximumHeight(35)
 
-        # Add all actions to the toolbar
-        toolbar.addAction(actionSaveLog)
-        toolbar.addAction(actionSettings)
-        toolbar.addAction(actionHelp)
+        # self.toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
+        self.toolbar.setMovable(False)
 
-        # toolbar.setMaximumHeight(30)
-        # toolbar.addAction(actionChangeLogFontSize)
-        # toolbar.addAction(actionFontSize)
-
-        # toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
-        toolbar.setMovable(False)
-
-        self.addToolBar(toolbar)
+        self.addToolBar(self.toolbar)
 
     def actionSaveLog(self):
         # If queue is empty, it doesn't make sense to save a log file
@@ -217,10 +210,8 @@ class GuiCli(AppMainWindow):
 
     def actionSettings(self):
         if self.settings.exec_():
-            self.writeToLog("Apply event\n")
             theme = self.settings.getTheme()
             self.applyTheme(theme)
-            self.currentTheme = theme
 
     def slotSpinBoxLogValueChanged(self, newValue):
         font = self.textBoxLog.font()
@@ -327,7 +318,7 @@ class GuiCli(AppMainWindow):
         x =  list(range(0, 7))
         y  = [0, 0, 1, 1, 1,0, 0]
         sc.axes.plot(x, y)
-        toolbar = NavigationToolbar(sc)
+        self.toolbar = NavigationToolbar(sc)
 
         self.layoutLog.addWidget(labelPort, 1, 0)
         self.layoutLog.addWidget(self.comboBoxComPorts, 1, 1)
@@ -338,7 +329,7 @@ class GuiCli(AppMainWindow):
         self.layoutLog.addWidget(self.dockLog, 3, 0, 1, -1)
         # self.layoutLog.addWidget(labelTitlePlot, 4, 0, 1, -1)
 
-        self.layoutPlots.addWidget(toolbar, 0, 0)
+        self.layoutPlots.addWidget(self.toolbar, 0, 0)
         self.layoutPlots.addWidget(sc, 1, 0)
 
     def initControlSection(self):
@@ -557,13 +548,15 @@ class GuiCli(AppMainWindow):
         hr = self.textRtcHr.text()
         min = self.textRtcMin.text()
         try:
-             self.micro.setRtcTime(hr, min)
+            self.writeToLog("Response: \n", 'blue')
+            self.micro.setRtcTime(hr, min)
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
     def slotRtcGetTime(self):
         try:
-             self.micro.getRtcTime()
+            self.writeToLog("Response: \n", 'blue')
+            self.micro.getRtcTime()
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
@@ -576,6 +569,7 @@ class GuiCli(AppMainWindow):
             if len(duty) < 1:
                 raise Exception("Invalid duty cycle")
 
+            self.writeToLog("Response: \n", 'blue')
             self.micro.setPwmFreqDuty(int(freq), int(duty))
         except Exception as e:
             self.showErrorMessage(f'{e}')
@@ -584,42 +578,49 @@ class GuiCli(AppMainWindow):
         gpio = self.comboBoxGpios.currentText()
         pin = self.comboBoxPins.currentText()
         try:
+             self.writeToLog("Response: \n", 'blue')
              self.micro.readPin(gpio, pin)
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
     def slotVersion(self):
         try:
+            self.writeToLog("Response: \n", 'blue')
             self.micro.getVersion()
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
     def slotHelp(self):
         try:
+            self.writeToLog("Response: \n", 'blue')
             self.micro.help()
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
     def slotTicks(self):
         try:
+            self.writeToLog("Response: \n", 'blue')
             self.micro.getTicks()
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
     def slotClk(self):
         try:
+            self.writeToLog("Response: \n", 'blue')
             self.micro.getClk()
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
     def slotStats(self):
         try:
+            self.writeToLog("Response: \n", 'blue')
             self.micro.getStats()
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
     def slotHeap(self):
         try:
+            self.writeToLog("Response: \n", 'blue')
             self.micro.getHeap()
         except Exception as e:
             self.showErrorMessage(f'{e}')
@@ -628,7 +629,8 @@ class GuiCli(AppMainWindow):
         gpio = self.comboBoxGpios.currentText()
         pin = self.comboBoxPins.currentText()
         try:
-             self.micro.writePin(gpio, pin, True)
+            self.writeToLog("Response: \n", 'blue')
+            self.micro.writePin(gpio, pin, True)
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
@@ -636,6 +638,7 @@ class GuiCli(AppMainWindow):
         gpio = self.comboBoxGpios.currentText()
         pin = self.comboBoxPins.currentText()
         try:
+            self.writeToLog("Response: \n", 'blue')
             self.micro.writePin(gpio, pin, False)
         except Exception as e:
             self.showErrorMessage(f'{e}')
@@ -660,7 +663,7 @@ class GuiCli(AppMainWindow):
         """ Set default main windows properties  """
         self.centerWindow()
         # self.setMinimumSize(w, h)
-        self.setFixedSize(w, h)
+        # self.setFixedSize(w, h)
         self.setWindowTitle(title + f" v{self.appVersion['major']}.{self.appVersion['minor']}")
         self.setWindowIcon(QIcon(appRootPath + self.iconPaths["mainIcon"]))
 
@@ -697,22 +700,23 @@ class GuiCli(AppMainWindow):
         self.gridLayout = QGridLayout(self.centralWidget)
         self.centralWidget.setLayout(self.gridLayout)
         self.setCentralWidget(self.centralWidget)
-        self.centralWidget.setLayout(self.gridLayout)
-        self.setCentralWidget(self.centralWidget)
+        # self.centralWidget.setLayout(self.gridLayout)
+        # self.setCentralWidget(self.centralWidget)
 
         # Frame: Frame for holding widgets for controlling the micro
         frame = QFrame(self)
-        # frame.setStyleSheet(self.defaultFrameStyle)
-        # frame.setMaximumWidth(self.defaultControlFrameSize)
+        frame.setMinimumWidth(self.maxControlFrameWidth)
+        # frame.setMaximumHeight(self.maxControlFrameHight)
         self.layoutFrameControl = QGridLayout()
         frame.setLayout(self.layoutFrameControl)
         self.gridLayout.addWidget(frame, 0, 0, -1, 1)
-        # self.listWidgets['frame'].append(frame)
+        self.listWidgets['frame'].append(frame)
 
         # Frame: Frame for holding widgets to GPIO handling
         frame = QFrame()
         # frame.setStyleSheet(self.defaultFrameStyle)
-        # frame.setMaximumHeight(140)
+        # frame.setMinimumWidth(self.maxControlFrameWidth)
+        # frame.setMaximumHeight(self.maxControlFrameHight)
         self.layoutGpio = QGridLayout()
         frame.setLayout(self.layoutGpio)
         self.layoutFrameControl.addWidget(frame, 0, 0)
@@ -720,9 +724,8 @@ class GuiCli(AppMainWindow):
 
         # Frame: Frame for holding widgets to general info
         frame = QFrame()
-        # frame.setStyleSheet(self.defaultFrameStyle)
-        # frame.setMaximumWidth(self.defaultControlFrameSize)
-        # frame.setMaximumHeight(180)
+        # frame.setMaximumWidth(self.maxControlFrameWidth)
+        # frame.setMaximumHeight(self.maxControlFrameHight)
         self.layoutGeneral = QGridLayout()
         frame.setLayout(self.layoutGeneral)
         self.layoutFrameControl.addWidget(frame, 1, 0)
@@ -730,9 +733,8 @@ class GuiCli(AppMainWindow):
 
         # Frame: Frame for holding widgets to RTC
         frame = QFrame()
-        # frame.setStyleSheet(self.defaultFrameStyle)
-        frame.setMaximumWidth(self.defaultControlFrameSize)
-        # frame.setMaximumHeight(180)
+        # frame.setMaximumWidth(self.maxControlFrameWidth)
+        # frame.setMaximumHeight(self.maxControlFrameHight)
         self.layoutRtc = QGridLayout()
         frame.setLayout(self.layoutRtc)
         self.layoutFrameControl.addWidget(frame, 2, 0)
@@ -740,9 +742,8 @@ class GuiCli(AppMainWindow):
 
         # Frame: Frame for holding widgets to PWM
         frame = QFrame()
-        # frame.setStyleSheet(self.defaultFrameStyle)
-        frame.setMaximumWidth(self.defaultControlFrameSize)
-        # frame.setMaximumHeight(320)
+        # frame.setMaximumWidth(self.maxControlFrameWidth)
+        # frame.setMaximumHeight(self.maxControlFrameHight)
         self.layoutPwm = QGridLayout()
         frame.setLayout(self.layoutPwm)
         self.layoutFrameControl.addWidget(frame, 3, 0)
@@ -750,8 +751,8 @@ class GuiCli(AppMainWindow):
 
         # Frame: Frame for logs and data visualization
         frame = QFrame()
-        # frame.setStyleSheet(self.defaultFrameStyle)
-        frame.setMaximumHeight(self.defaultLogFrameSize)
+        # frame.setMaximumHeight(self.defaultLogFrameSize)
+
         self.layoutLog = QGridLayout()
         frame.setLayout(self.layoutLog)
         self.gridLayout.addWidget(frame, 0, 1)
@@ -759,20 +760,9 @@ class GuiCli(AppMainWindow):
 
         # Frame: Plots
         frame = QFrame()
-        # frame.setStyleSheet(self.defaultFrameStyle)
-        # frame.setMaximumHeight(self.maxPlotFrameHight)
         self.layoutPlots = QGridLayout()
         frame.setLayout(self.layoutPlots)
         self.gridLayout.addWidget(frame, 1, 1)
-        frame.setStyleSheet( """ QFrame {
-                                background-color: white;
-                                border-radius: 10px;
-                                padding: 10px;
-                                }
-                            """
-                            )
-        # frame.setContentsMargins(0, 0 ,0, 0)
-        # self.listWidgets['frame'].append(frame)
 
     def updateStatusBar(self, text, color = 'white'):
         # Check if color is hex code
@@ -802,12 +792,19 @@ class GuiCli(AppMainWindow):
                 self.buttonConnectDisconnect.setText("Start monitoring")
                 # self.writeToLog(f'Serial device: disconnected from {portName}\n', 'yellow')
 
+
                 # Update button border  color
                 self.prevStyle = self.buttonConnectDisconnect.styleSheet()
-                newStyle = self.updateBorderColor(self.prevStyle, "#555555")
+                if self.currentTheme == 'dark':
+                    newStyle = self.updateBorderColor(self.prevStyle, "#555555")
+                else:
+                    newStyle = self.updateBorderColor(self.prevStyle, "#CCCCCC")
                 self.buttonConnectDisconnect.setStyleSheet(newStyle)
 
-                self.updateStatusBar("Serial device: disconnected", "yellow")
+                if self.currentTheme == 'dark':
+                    self.updateStatusBar("Serial device: disconnected", "yellow")
+                else:
+                    self.updateStatusBar("Serial device: disconnected", "dark")
 
             else:
                 self.micro.open(portName, baud, dataLen, parity, stopBits)
@@ -820,7 +817,7 @@ class GuiCli(AppMainWindow):
                 self.buttonConnectDisconnect.setStyleSheet(newStyle)
 
                 # Update status bar
-                self.updateStatusBar("Serial device: connected", "#77DD77")
+                self.updateStatusBar("Serial device: connected", "green")
         except Exception as e:
             self.showErrorMessage(f'Error{e}')
 
