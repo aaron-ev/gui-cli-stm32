@@ -23,6 +23,7 @@ import matplotlib
 matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+import time
 
 APP_WIDTH = 920
 APP_HIGHT = 880
@@ -56,6 +57,7 @@ class GuiCli(AppMainWindow):
                    'toolbar':[],
                    }
     currentTheme = 'dark'
+    pwmStartTime = 0 # Time when a PWM measurement should started
 
     def __init__(self, title, w, h):
         super().__init__()
@@ -239,11 +241,22 @@ class GuiCli(AppMainWindow):
         else:
             color = 'black'
 
-        self.writeToLog(data, color)
-        if self.logQueue.full():
-            self.writeToLog("Can't log more data, queue is full\n", 'red')
-        else:
-            self.logQueue.put(data)
+        # If data comes from PWW monitor feature, it should be displayed in
+        # a plot instead of a text widget.
+        if "monitorPwm:" in data:
+            # Get PWM signal state
+            pwmSignalState = data[11:]
+            # Calculate elapsed time
+            elapsedTime = self.pwmStartTime - time.time()
+            self.writeToPlot(elapsedTime, pwmSignalState)
+        else: # Any command that is not monitoring
+            self.writeToLog(data, color)
+
+            # Prevent log queue to overflow by incoming new data
+            if self.logQueue.full():
+                self.writeToLog("Can't log more data, queue is full\n", 'red')
+            else:
+                self.logQueue.put(data)
 
     def slotComboBoxComPorts(self):
         pass
@@ -310,15 +323,15 @@ class GuiCli(AppMainWindow):
         self.listWidgets['button'].append(buttonRefresh)
 
         # Matplot
-        sc = MplCanvas(self, width=3, height=3, dpi=100)
-        sc.axes.set_xlabel("Time(s)")
-        sc.axes.set_ylabel("Voltage(V)")
-        sc.axes.set_title("Signal")
+        self.sc = MplCanvas(self, width=3, height=3, dpi=100)
+        self.sc.axes.set_xlabel("Time(s)")
+        self.sc.axes.set_ylabel("Voltage(V)")
+        self.sc.axes.set_title("Signal")
 
         x =  list(range(0, 7))
         y  = [0, 0, 1, 1, 1,0, 0]
-        sc.axes.plot(x, y)
-        self.toolbar = NavigationToolbar(sc)
+        self.sc.axes.plot(x, y)
+        self.toolbar = NavigationToolbar(self.sc)
 
         self.layoutLog.addWidget(labelPort, 1, 0)
         self.layoutLog.addWidget(self.comboBoxComPorts, 1, 1)
@@ -330,7 +343,10 @@ class GuiCli(AppMainWindow):
         # self.layoutLog.addWidget(labelTitlePlot, 4, 0, 1, -1)
 
         self.layoutPlots.addWidget(self.toolbar, 0, 0)
-        self.layoutPlots.addWidget(sc, 1, 0)
+        self.layoutPlots.addWidget(self.sc, 1, 0)
+
+    def writeToPlot(self, x, y):
+        self.sc.axes.plot(x, y)
 
     def initControlSection(self):
         labelTitleGpioRW = self.aWidgets.newLabel("GPIO Write/Read", self.labelPointSize, None)
@@ -463,8 +479,8 @@ class GuiCli(AppMainWindow):
                                             )
 
         # Button: Start measure
-        buttonPwmMeasure = self.aWidgets.newButton("Start measure",
-                                            self.slotPwmStartMeasure,
+        self.buttonPwmMonitor = self.aWidgets.newButton("Start measurement",
+                                            self.slotPwmMonitor,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['stats'],
                                             )
@@ -483,7 +499,7 @@ class GuiCli(AppMainWindow):
         self.listWidgets['button'].append(buttonSetTime)
         self.listWidgets['button'].append(buttonGetTime)
         self.listWidgets['button'].append(buttonPwmSetFreqDuty)
-        self.listWidgets['button'].append(buttonPwmMeasure)
+        self.listWidgets['button'].append(self.buttonPwmMonitor)
         self.listWidgets['combobox'].append(self.comboBoxGpios)
         self.listWidgets['combobox'].append(self.comboBoxPins)
         self.listWidgets['combobox'].append(self.comboBoxPwmChannels)
@@ -529,10 +545,20 @@ class GuiCli(AppMainWindow):
         self.layoutPwm.addWidget(buttonPwmSetFreqDuty, 2, 0, 1, -1)
         self.layoutPwm.addWidget(labelPwmChannel, 3, 0)
         self.layoutPwm.addWidget(self.comboBoxPwmChannels, 3, 2, 1, -1)
-        self.layoutPwm.addWidget(buttonPwmMeasure, 4, 0, 1, -1)
+        self.layoutPwm.addWidget(self.buttonPwmMonitor, 4, 0, 1, -1)
 
-    def slotPwmStartMeasure(self):
-        self.writeToLog("Not implemented yet :)\n", 'yellow')
+    def slotPwmMonitor(self):
+        """ Slot to monitor a PWM channel"""
+        if self.micro.isMonitoring:
+            self.micro.stopPwmMonitor()
+            self.pwmStartTime = 0
+            self.buttonPwmMonitor.setText("Start measurement")
+        else:
+            channel = int(self.comboBoxPwmChannels.currentText())
+            # Start time will be used as start time for signal plotting
+            self.pwmStartTime = time.time()
+            self.micro.monitorPwm(channel)
+            self.buttonPwmMonitor.setText("Stop measurement")
 
     def updateBorderColor(self, style, hexBorderColor):
         border_index = style.find("border:")
@@ -826,6 +852,7 @@ class GuiCli(AppMainWindow):
             self.micro.close()
         print("Closing..")
         event.accept()
+
     def slotButtonDisconnectPort(self):
         try:
             self.micro.close()

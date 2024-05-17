@@ -1,7 +1,8 @@
 from serialDev import ThreadSerialDev
 class Micro():
     baudRates = ['1200','2400','4800','9600','38400', '115200']
-    channels = ['CH1', 'CH2', 'CH3', 'CH4']
+    # channels = ['CH1', 'CH2', 'CH3', 'CH4']
+    channels = ['1', '2', '3', '4']
     supportedGpios  = ['a','b','c','d','e','h']
     supportedPins = (0, 15)
     cmds = {\
@@ -15,6 +16,7 @@ class Micro():
             'stats':"stats\n",
             }
     maxFreq =  10000 # In Hz
+    isMonitoring = False
 
     def __init__(self, callbackDataRead):
         self.serialDev = None
@@ -96,3 +98,22 @@ class Micro():
         cmd = f'pwm-d {duty} 1'
         print(cmd)
         # self.serialThread.write(cmd)
+
+    def monitorPwm(self, channel = 1):
+        """ Send a command to monitor a PWM channel"""
+        if str(channel) not in self.channels:
+            raise Exception("Invalid channel, valid range (1-4) ")
+        cmd = f'pwm-m {channel}'
+        self.isMonitoring = True
+        # self.writeToSerial(cmd)
+
+    def stopPwmMonitor(self):
+        """ Stop PWM monitoring feature """
+        cmd = f'pwm-s'
+        # self.writeToSerial(cmd)
+        self.isMonitoring = False
+
+    def writeToSerial(self, data):
+        """ Function to send data to a serial device"""
+        self.serialThread.write(data)
+
