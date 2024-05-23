@@ -56,7 +56,7 @@ class GuiCli(AppMainWindow):
                    'text':[],
                    'toolbar':[],
                    }
-    currentTheme = 'dark'
+    currentTheme = 'light'
     pwmStartTime = 0 # Time when a PWM measurement should started
 
     def __init__(self, title, w, h):
@@ -256,7 +256,8 @@ class GuiCli(AppMainWindow):
             if self.logQueue.full():
                 self.writeToLog("Can't log more data, queue is full\n", 'red')
             else:
-                self.logQueue.put(data)
+                pass
+                # self.logQueue.put(data)
 
     def slotComboBoxComPorts(self):
         pass

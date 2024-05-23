@@ -52,7 +52,8 @@ class ThreadSerialDev(QThread):
             raise serial.SerialException("Serial device not opened")
 
     def run(self):
-        self.read()
+        while(1):
+            self.read()
 
     def read(self, timeOutS = 3):
         """ Read from the serial port """
@@ -63,11 +64,16 @@ class ThreadSerialDev(QThread):
         startTimeMs = time.time() * 1000 # Convert it to ms
         timeElapsed = 0
         timeOutMs = timeOutS * 1000
-        while ("EOT" not in data.decode('utf-8') and timeElapsed < timeOutMs):
-            data = self.serialDev.readline()
-            self.signalDataRead.emit(data)
-            timeElapsed = time.time() * 1000 - startTimeMs
-        return data
+        data = self.serialDev.readline()
+        self.signalDataRead.emit(data)
+        print(data)
+
+
+        # while ("EOT" not in data.decode('utf-8') and timeElapsed < timeOutMs):
+            # data = self.serialDev.read(1)
+            # print(data)
+            # self.signalDataRead.emit(data)
+            # timeElapsed = time.time() * 1000 - startTimeMs
 
     def close(self):
         """ Close the serial port """

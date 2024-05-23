@@ -103,13 +103,13 @@ class Micro():
         """ Send a command to monitor a PWM channel"""
         if str(channel) not in self.channels:
             raise Exception("Invalid channel, valid range (1-4) ")
-        cmd = f'pwm-m {channel}'
+        cmd = f'pwmMonitor {channel}\n '
         self.isMonitoring = True
-        # self.writeToSerial(cmd)
+        self.writeToSerial(cmd)
 
     def stopPwmMonitor(self):
         """ Stop PWM monitoring feature """
-        cmd = f'pwm-s'
+        cmd = f'stopMonitor'
         # self.writeToSerial(cmd)
         self.isMonitoring = False
 
