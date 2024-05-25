@@ -103,17 +103,26 @@ class Micro():
         """ Send a command to monitor a PWM channel"""
         if str(channel) not in self.channels:
             raise Exception("Invalid channel, valid range (1-4) ")
-        cmd = f'pwmMonitor {channel}\n '
+        cmd = f'pwmMonitor {channel}\n'
         self.isMonitoring = True
         self.writeToSerial(cmd)
 
     def stopPwmMonitor(self):
         """ Stop PWM monitoring feature """
-        cmd = f'stopMonitor'
-        # self.writeToSerial(cmd)
+        cmd = f'stopMonitor\n'
+        self.writeToSerial(cmd)
         self.isMonitoring = False
 
-    def writeToSerial(self, data):
+    def writeToSerial(self, data, enableReading = True):
         """ Function to send data to a serial device"""
-        self.serialThread.write(data)
+        self.serialThread.write(data, enableReading)
 
+    def ping(self):
+        """ Test if there is a connection with the microcontroller """
+        cmd = f'ping\n'
+        self.writeToSerial(cmd, False)
+        data = self.serialThread.readResponseSync(1).decode()
+        if data.strip() == "OK":
+            return "connected"
+        else:
+            return "disconnected"
