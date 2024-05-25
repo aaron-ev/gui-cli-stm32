@@ -37,10 +37,11 @@ class ThreadSerialDev(QThread):
                                        timeout = 1
                                        )
 
-    def write(self, str):
-        """ Write to the serial port """
+    def write(self, str, enableReading = True):
+        """ Write to the serial port. Enable reading is to read the response
+            after the write.
+        """
         if self.serialDev is not None and self.serialDev.is_open:
-            self.start()
             try:
                 data = str.encode()
                 print(f'SERIAL: {data}')
@@ -51,32 +52,30 @@ class ThreadSerialDev(QThread):
         else:
             raise serial.SerialException("Serial device not opened")
 
-    def run(self):
-        while(1):
-            self.read()
+        # Read response if it is enabled
+        if enableReading:
+            self.startReading = True
+            self.start()
 
-    def read(self, timeOutS = 3):
-        """ Read from the serial port """
+    def run(self):
+        while(self.startReading):
+            self.readResponseSync()
+
+    def readResponseSync(self, timeout = 1):
+        """ Blocking call to read from serial device """
         if self.serialDev is None or not self.serialDev.is_open:
             raise serial.SerialException("Serial device not opened")
 
-        data = b''
-        startTimeMs = time.time() * 1000 # Convert it to ms
-        timeElapsed = 0
-        timeOutMs = timeOutS * 1000
+        self.serialDev.timeout = timeout
         data = self.serialDev.readline()
-        self.signalDataRead.emit(data)
-        print(data)
-
-
-        # while ("EOT" not in data.decode('utf-8') and timeElapsed < timeOutMs):
-            # data = self.serialDev.read(1)
-            # print(data)
-            # self.signalDataRead.emit(data)
-            # timeElapsed = time.time() * 1000 - startTimeMs
+        if data:
+            self.signalDataRead.emit(data)
+            return data
+        return b''
 
     def close(self):
         """ Close the serial port """
+        self.startReading = False
         if self.isRunning():
             print("Waiting for thread to finish\n")
             self.wait()
@@ -87,6 +86,7 @@ class ThreadSerialDev(QThread):
 
     def stop(self):
         self.wait()
+        self.startReading = False
         print("debug: process stopped\n")
 
     def isOpen(self):
