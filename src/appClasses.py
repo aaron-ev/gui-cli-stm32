@@ -53,275 +53,6 @@ class AppMainWindow(QMainWindow):
     buttonFontSize = 10
     notiSoundPath = "audio/notification.wav"
 
-    darkTheme = {
-                "mainWindow":
-                            """
-                                QMainWindow {
-                                    background-color: #1f1f1f; /* Dark gray background */
-                                    color: blue; /* Text color */
-                                }
-                                QMainWindow::separator {
-                                    background-color: red; /* Change the color here */
-                                    height: 1px; /* Set the height of the separator */
-                                    margin: 2px; /* Set margin to zero */
-                                }
-                            """,
-                "button":
-                            """
-                                QPushButton {
-                                    background-color: #2E2E2E;
-                                    color: white;
-                                    border: 2px solid #555555;
-                                    border-radius: 5px; /* Rounded corners */
-                                    padding: 4px 8px; /* Padding */
-                                }
-                                QPushButton:hover {
-                                    background-color: #3A3A3A; /* Darker gray background on hover */
-                                }
-                                QPushButton:pressed {
-                                    background-color: #4A4A4A; /* Pressed color */
-                                }
-                            """,
-                "menuBar":
-                            """ QMenuBar {
-                                    background-color: #2C2C2C; /* Black background */
-                                    color: white; /* White text color */
-                                }
-                                QMenuBar::item {
-                                    background-color: #2C2C2C; /* Black background for menu items */
-                                    color: #FFFFFF; /* White text color for menu items */
-                                    padding: 4px 8px; /* Padding around menu items */
-                                }
-                                QMenuBar::item:selected {
-                                    background-color: #2C2C2C ; /* Dark gray background for selected menu items */
-                                }
-                            """,
-                "menu":
-                            """ QMenu {
-                                    background-color: #2C2C2C; /* Black background for submenus */
-                                    color: #FFFFFF; /* White text color for submenus */
-                                    border: 1px solid #3A3A3A; /* White border for submenus */
-                                }
-                                QMenu::item {
-                                    background-color: #2C2C2C; /* Black background for submenu items */
-                                    color: #FFFFFF; /* White text color for submenu items */
-                                }
-                                QMenu::item:selected {
-                                    background-color: #333333; /* Dark gray background for selected submenu items */
-                                }
-                            """,
-                "line":
-                            """ QLineEdit {
-                                background-color: #1f1f1f; /* Dark gray background */
-                                color: white; /* Text color */
-                                border: 2px solid #555555; /* Nice blue border color */
-                                border-radius: 5px; /* Rounded corners */
-                                padding: 5px 10px; /* Padding */
-                                }
-                                QLineEdit:hover {
-                                background-color: #3A3A3A; /* Darker gray background on hover */
-                                }
-                            """,
-                "combobox":
-                            """
-                                QComboBox {
-                                    background-color: #1f1f1f; /* Dark gray */
-                                    color: white; /* Default text */
-                                    text-align: center;
-                                }
-                                QComboBox::down-arrow {
-                                    background-color: #1f1f1f; /* Dark gray */
-                                }
-                            """,
-                "dialog":
-                            """QDialog {
-                                background-color: #1f1f1f; /* Dark gray background */
-                                color: white; /* Text color */
-                                }
-                            """,
-                "label":
-                            """ QLabel {
-                                background-color: #1f1f1f;
-                                color: white;
-                                border: 1px solid  #1f1f1f;
-                                }
-                            """,
-                "text":
-                            """ QTextEdit {
-                                background-color: #1f1f1f;
-                                color: white;
-                                border: 1px solid #1f1f1f;
-                                }
-                            """,
-                "dock":
-                            """  QDockWidget {
-                                background-color: #1f1f1f;
-                                color: white;
-                                }
-                            """,
-                "frame":
-                            """ QFrame {
-                                background-color: #1f1f1f;
-                                border: 1px solid #555555;
-                                border-radius: 10px;
-                                padding: 10px;
-                                }
-                            """,
-                "toolbar":
-                            """
-                                /* ToolBar */
-                                QToolBar {
-                                    background-color: #2C2C2C;
-                                }
-                                /* ToolButton */
-                                QToolBar QToolButton {
-                                    background-color: #f0f0f0;
-                                    color: #000000;
-                                    border: 1px solid #000000;
-                                    padding: 5px 10px;
-                                }
-                                QToolBar QToolButton:hover {
-                                    background-color: #d0d0d0;
-                                }
-                            """
-                }
-
-    darkTheme = {
-                "mainWindow":
-                            """
-                                QMainWindow {
-                                    background-color: #1f1f1f; /* Dark gray background */
-                                    color: blue; /* Text color */
-                                }
-                                QMainWindow::separator {
-                                    background-color: red; /* Change the color here */
-                                    height: 1px; /* Set the height of the separator */
-                                    margin: 2px; /* Set margin to zero */
-                                }
-                            """,
-                "button":
-                            """
-                                QPushButton {
-                                    background-color: #2E2E2E;
-                                    color: white;
-                                    border: 2px solid #555555;
-                                    border-radius: 5px; /* Rounded corners */
-                                    padding: 4px 8px; /* Padding */
-                                }
-                                QPushButton:hover {
-                                    background-color: #3A3A3A; /* Darker gray background on hover */
-                                }
-                                QPushButton:pressed {
-                                    background-color: #4A4A4A; /* Pressed color */
-                                }
-                            """,
-                "menuBar":
-                            """ QMenuBar {
-                                    background-color: #2C2C2C; /* Black background */
-                                    color: white; /* White text color */
-                                }
-                                QMenuBar::item {
-                                    background-color: #2C2C2C; /* Black background for menu items */
-                                    color: #FFFFFF; /* White text color for menu items */
-                                    padding: 4px 8px; /* Padding around menu items */
-                                }
-                                QMenuBar::item:selected {
-                                    background-color: #2C2C2C ; /* Dark gray background for selected menu items */
-                                }
-                            """,
-                "menu":
-                            """ QMenu {
-                                    background-color: #2C2C2C; /* Black background for submenus */
-                                    color: #FFFFFF; /* White text color for submenus */
-                                    border: 1px solid #3A3A3A; /* White border for submenus */
-                                }
-                                QMenu::item {
-                                    background-color: #2C2C2C; /* Black background for submenu items */
-                                    color: #FFFFFF; /* White text color for submenu items */
-                                }
-                                QMenu::item:selected {
-                                    background-color: #333333; /* Dark gray background for selected submenu items */
-                                }
-                            """,
-                "line":
-                            """ QLineEdit {
-                                background-color: #1f1f1f; /* Dark gray background */
-                                color: white; /* Text color */
-                                border: 2px solid #555555; /* Nice blue border color */
-                                border-radius: 5px; /* Rounded corners */
-                                padding: 5px 10px; /* Padding */
-                                }
-                                QLineEdit:hover {
-                                background-color: #3A3A3A; /* Darker gray background on hover */
-                                }
-                            """,
-                "combobox":
-                            """
-                                QComboBox {
-                                    background-color: #1f1f1f; /* Dark gray */
-                                    color: white; /* Default text */
-                                    text-align: center;
-                                }
-                                QComboBox::down-arrow {
-                                    background-color: #1f1f1f; /* Dark gray */
-                                    color: white;
-                                }
-                                QComboBox::item { color:white }
-                            """,
-                "dialog":
-                            """QDialog {
-                                background-color: #1f1f1f; /* Dark gray background */
-                                color: white; /* Text color */
-                                }
-                            """,
-                "label":
-                            """ QLabel {
-                                background-color: #1f1f1f;
-                                color: white;
-                                border: 1px solid  #1f1f1f;
-                                }
-                            """,
-                "text":
-                            """ QTextEdit {
-                                background-color: #1f1f1f;
-                                color: white;
-                                border: 1px solid #1f1f1f;
-                                }
-                            """,
-                "dock":
-                            """  QDockWidget {
-                                background-color: #1f1f1f;
-                                color: white;
-                                }
-                            """,
-                "frame":
-                            """ QFrame {
-                                background-color: #1f1f1f;
-                                border: 1px solid #555555;
-                                border-radius: 10px;
-                                padding: 10px;
-                                color:white;
-                                }
-                            """,
-                "toolbar":
-                            """
-                                /* ToolBar */
-                                QToolBar {
-                                    background-color: #2C2C2C;
-                                }
-                                /* ToolButton */
-                                QToolBar QToolButton {
-                                    background-color: #2C2C2C;
-                                    color: #000000;
-                                    border: 1px solid #2C2C2C;
-                                    padding: 5px 10px;
-                                }
-                                QToolBar QToolButton:hover {
-                                    background-color: #d0d0d0;
-                                }
-                            """
-                }
-
     lightTheme = {
                 "mainWindow":
                             """
@@ -458,6 +189,142 @@ class AppMainWindow(QMainWindow):
                                 }
                             """
                 }
+    darkTheme = {
+                "mainWindow":
+                            """
+                                QMainWindow {
+                                    background-color: #1f1f1f; /* Dark gray background */
+                                    color: blue; /* Text color */
+                                }
+                                QMainWindow::separator {
+                                    background-color: red; /* Change the color here */
+                                    height: 1px; /* Set the height of the separator */
+                                    margin: 2px; /* Set margin to zero */
+                                }L
+                            """,
+                "button":
+                            """
+                                QPushButton {
+                                    background-color: #2E2E2E;
+                                    color: white;
+                                    border: 2px solid #555555;
+                                    border-radius: 5px; /* Rounded corners */
+                                    padding: 4px 8px; /* Padding */
+                                }
+                                QPushButton:hover {
+                                    background-color: #3A3A3A; /* Darker gray background on hover */
+                                }
+                                QPushButton:pressed {
+                                    background-color: #4A4A4A; /* Pressed color */
+                                }
+                            """,
+                "menuBar":
+                            """ QMenuBar {
+                                    background-color: #2C2C2C; /* Black background */
+                                    color: white; /* White text color */
+                                }
+                                QMenuBar::item {
+                                    background-color: #2C2C2C; /* Black background for menu items */
+                                    color: #FFFFFF; /* White text color for menu items */
+                                    padding: 4px 8px; /* Padding around menu items */
+                                }
+                                QMenuBar::item:selected {
+                                    background-color: #2C2C2C ; /* Dark gray background for selected menu items */
+                                }
+                            """,
+                "menu":
+                            """ QMenu {
+                                    background-color: #2C2C2C; /* Black background for submenus */
+                                    color: #FFFFFF; /* White text color for submenus */
+                                    border: 1px solid #3A3A3A; /* White border for submenus */
+                                }
+                                QMenu::item {
+                                    background-color: #2C2C2C; /* Black background for submenu items */
+                                    color: #FFFFFF; /* White text color for submenu items */
+                                }
+                                QMenu::item:selected {
+                                    background-color: #333333; /* Dark gray background for selected submenu items */
+                                }
+                            """,
+                "line":
+                            """ QLineEdit {
+                                background-color: #1f1f1f; /* Dark gray background */
+                                color: white; /* Text color */
+                                border: 2px solid #555555; /* Nice blue border color */
+                                border-radius: 5px; /* Rounded corners */
+                                padding: 5px 10px; /* Padding */
+                                }
+                                QLineEdit:hover {
+                                background-color: #3A3A3A; /* Darker gray background on hover */
+                                }
+                            """,
+                "combobox":
+                            """
+                                QComboBox {
+                                    background-color: #1f1f1f; /* Dark gray */
+                                    color: white; /* Default text */
+                                    text-align: center;
+                                }
+                                QComboBox::down-arrow {
+                                    background-color: #1f1f1f; /* Dark gray */
+                                    color: white; /* Arrow color */
+                                }
+                            """,
+                "dialog":
+                            """QDialog {
+                                background-color: #1f1f1f; /* Dark gray background */
+                                color: white; /* Text color */
+                                }
+                            """,
+                "label":
+                            """ QLabel {
+                                background-color: #1f1f1f;
+                                color: white;
+                                border: 1px solid  #1f1f1f;
+                                }
+                            """,
+                "text":
+                            """ QTextEdit {
+                                background-color: #2C2C2C;
+                                color: white;
+                                border: 1px solid #2C2C2C;
+                                }
+                                QTextEdit:hover {
+                                    background-color: #2C2C2C;
+                                }
+                            """,
+                "dock":
+                            """  QDockWidget {
+                                background-color: #1f1f1f;
+                                color: white;
+                                }
+                            """,
+                "frame":
+                            """ QFrame {
+                                background-color: #1f1f1f;
+                                border: 1px solid #555555;
+                                border-radius: 5px;
+                                padding: 5px;
+                                }
+                            """,
+                "toolbar":
+                            """
+                                /* ToolBar */
+                                QToolBar {
+                                    background-color: #2C2C2C;
+                                }
+                                /* ToolButton */
+                                QToolBar QToolButton {
+                                    background-color: #2C2C2C;
+                                    color: #000000;
+                                    border: 1px solid #2C2C2C;
+                                    padding: 5px 10px;
+                                }
+                                QToolBar QToolButton:hover {
+                                    background-color: #d0d0d0;
+                                }
+                            """
+                }
     themes = {"dark": darkTheme, "light": lightTheme}
 
     def __init__(self):
@@ -491,13 +358,13 @@ class AWidgets():
     def newLabel(self, text, pointSize, style = None):
         label = QLabel(text, self)
         # label.setStyleSheet(f'color: {self.defaultLabelColor}')
-        font = QFont()
-        font.setPointSize(pointSize)
-        label.setFont(font)
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        if style is not None:
-            label.setStyleSheet(style)
-        label.maximumHeight(20)
+        # font = QFont()
+        # font.setPointSize(pointSize)
+        # label.setFont(font)
+        # label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # if style is not None:
+        #     label.setStyleSheet(style)
+        # label.maximumHeight(20)
         return label
 
     def newButton(self, text, slot = None, font = None, iconPath = None, size = None, style = None):
@@ -577,7 +444,7 @@ class AWidgets():
         return action
 
 class ASettings(QDialog):
-    maxSize = (320, 180)
+    maxSize = (320, 200)
     labelPointSize = 12
     labelStyle = "background-color: #1f1f1f; border-radius: 1px; border: 1px solid #1f1f1f;color: white"
     tabStyle = ("QTabWidget { background-color: #1f1f1f; }"
