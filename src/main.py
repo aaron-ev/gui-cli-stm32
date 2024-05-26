@@ -323,8 +323,15 @@ class GuiCli(AppMainWindow):
                                                   (60, 25),
                                                   None
                                                 )
+        # Button: Clean log
+        buttonCleanLog = self.aWidgets.newButton("Clean",
+                                                  self.slotButtonCleanLog,
+                                                  self.buttonsFont,
+                                                  None,
+                                                )
         self.listWidgets['button'].append(self.buttonConnectDisconnect)
         self.listWidgets['button'].append(buttonRefresh)
+        self.listWidgets['button'].append(buttonCleanLog)
 
         # Matplot
         self.canvas = MplCanvas(self, width=3, height=3, dpi=100)
@@ -342,7 +349,8 @@ class GuiCli(AppMainWindow):
         self.layoutLog.addWidget(buttonRefresh, 1, 2)
         self.layoutLog.addWidget(labelBaudRate, 1, 3)
         self.layoutLog.addWidget(self.comboBoxBaudrates, 1, 4)
-        self.layoutLog.addWidget(self.buttonConnectDisconnect, 2, 0, 1, -1, alignment = Qt.AlignmentFlag.AlignCenter)
+        self.layoutLog.addWidget(buttonCleanLog, 2, 0, 1, 1)
+        self.layoutLog.addWidget(self.buttonConnectDisconnect, 2, 1, 1, -1, alignment = Qt.AlignmentFlag.AlignCenter)
         self.layoutLog.addWidget(self.dockLog, 3, 0, 1, -1)
         # self.layoutLog.addWidget(labelTitlePlot, 4, 0, 1, -1)
 
@@ -680,6 +688,10 @@ class GuiCli(AppMainWindow):
             self.micro.writePin(gpio, pin, True)
         except Exception as e:
             self.showErrorMessage(f'{e}')
+
+    def slotButtonCleanLog(self):
+        self.textBoxLog.clear()
+        self.clearLogQueue()
 
     def slotButtonOff(self):
         """ Slot to off on a pin """
