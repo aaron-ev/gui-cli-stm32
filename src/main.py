@@ -11,7 +11,7 @@ import time
 
 # PyQT modules
 from PyQt5.QtWidgets import (QApplication, QMenuBar, QToolBar, QWidget, QGridLayout,
-                             QFrame, QComboBox, QFileDialog, QMessageBox,QStatusBar
+                             QFrame, QFileDialog, QMessageBox,QStatusBar
                              )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QFont, QTextCharFormat, QColor
@@ -47,7 +47,7 @@ class GuiCli(AppMainWindow):
     buttonSize = (110, 30)
     defaultLogFrameSize = 380
     labelPointSize = 12
-    maxControlFrameWidth = 320
+    maxControlFrameWidth = 250
     maxControlFrameHight = 80
     listWidgets = {
                    'frame':[],
@@ -288,14 +288,16 @@ class GuiCli(AppMainWindow):
 
         # Create combobox for sandboxes
         self.comboBoxComPorts = self.aWidgets.newComboBox(self.slotComboBoxComPorts)
+        self.comboBoxComPorts.setFixedWidth(250)
         self.comboBoxBaudrates = self.aWidgets.newComboBox()
         self.listWidgets['combobox'].append(self.comboBoxComPorts)
         self.listWidgets['combobox'].append(self.comboBoxBaudrates)
 
         # Update combobox with available ports
-        self.ports = serial.tools.list_ports.comports()
-        for port in self.ports:
-            self.comboBoxComPorts.addItem(port.description)
+        self.refreshSerialPorts()
+        # self.ports = serial.tools.list_ports.comports()
+        # for port in self.ports:
+            # self.comboBoxComPorts.addItem(port.description)
 
         # Update combobox with supported baudrates
         for baud in self.micro.baudRates:
@@ -308,9 +310,10 @@ class GuiCli(AppMainWindow):
 
         # Button: Connect to serial port
         self.buttonConnectDisconnect = self.aWidgets.newButton("Start connection",
-                                                            self.slotConnectDisconnect,
-                                                            self.buttonsFont,
-                                                            self.appRootPath + self.iconPaths['serialPort'], \
+                                                                self.slotConnectDisconnect,
+                                                                self.buttonsFont,
+                                                                self.appRootPath + self.iconPaths['serialPort'],
+                                                                (220, 30)
                                                               )
         # Button: Refresh the serial port list
         buttonRefresh = self.aWidgets.newButton("",
@@ -329,9 +332,9 @@ class GuiCli(AppMainWindow):
         self.canvas.axes.set_ylabel("Voltage(V)")
         self.canvas.axes.set_title("Signal")
 
-        x =  list(range(0, 7))
-        y  = [0, 0, 1, 1, 1,0, 0]
-        self.canvas.axes.plot(x, y)
+        # x =  list(range(0, 7))
+        # y  = [0, 0, 1, 1, 1,0, 0]
+        # self.canvas.axes.plot(x, y)
         self.toolbar = NavigationToolbar(self.canvas)
 
         self.layoutLog.addWidget(labelPort, 1, 0)
@@ -690,10 +693,14 @@ class GuiCli(AppMainWindow):
 
     def slotButtonRefreshSerialPorts(self):
         """ Slot to refresh the list of serial ports """
+        self.refreshSerialPorts()
+
+    def refreshSerialPorts(self):
         self.comboBoxComPorts.clear()
-        ports = serial.tools.list_ports.comports()
-        for port in ports:
-            self.comboBoxComPorts.addItem(port.description)
+        self.ports = serial.tools.list_ports.comports()
+        for port in self.ports:
+            if "USB" in port.hwid:
+                self.comboBoxComPorts.addItem(port.description)
 
     def centerWindow(self):
         """ Centers the window on the screen """
@@ -714,29 +721,6 @@ class GuiCli(AppMainWindow):
         self.setWindowTitle(title + f" v{self.appVersion['major']}.{self.appVersion['minor']}")
         self.setWindowIcon(QIcon(appRootPath + self.iconPaths["mainIcon"]))
 
-    def initComboBoxes(self):
-        """ Initialize all comboboxes """
-        # Create combobox for sandboxes
-        self.comboBoxComPorts = QComboBox()
-        self.comboBoxBaudrates = QComboBox()
-
-        font = QFont()
-        font.setPointSize(12)
-        self.comboBoxComPorts.setFont(font)
-        self.comboBoxBaudrates.setFont(font)
-
-        ports = serial.tools.list_ports.comports()
-        for port in ports:
-            self.comboBoxComPorts.addItem(port.name)
-
-        for baud in self.micro.baudRates:
-            self.comboBoxBaudrates.addItem(baud)
-
-        self.gridLayout.addWidget(self.comboBoxComPorts, 0, 0)
-        self.gridLayout.addWidget(self.comboBoxBaudrates, 0, 1)
-        self.gridLayout.addWidget(self.comboBoxBaudrates, 1, 0)
-        self.gridLayout.addWidget(self.comboBoxBaudrates, 1, 1)
-
     def initLayouts(self):
         """ Initialize all layouts """
         # Central widget
@@ -746,12 +730,10 @@ class GuiCli(AppMainWindow):
         self.gridLayout = QGridLayout(self.centralWidget)
         self.centralWidget.setLayout(self.gridLayout)
         self.setCentralWidget(self.centralWidget)
-        # self.centralWidget.setLayout(self.gridLayout)
-        # self.setCentralWidget(self.centralWidget)
 
         # Frame: Frame for holding widgets for controlling the micro
         frame = QFrame(self)
-        frame.setMinimumWidth(self.maxControlFrameWidth)
+        frame.setFixedWidth(self.maxControlFrameWidth)
         # frame.setMaximumHeight(self.maxControlFrameHight)
         self.layoutFrameControl = QGridLayout()
         frame.setLayout(self.layoutFrameControl)
@@ -813,12 +795,13 @@ class GuiCli(AppMainWindow):
     def slotConnectDisconnect(self):
         """ Slot to connect and disconnect from the serial port """
         portDescription = self.comboBoxComPorts.currentText()
+        if len(portDescription) < 1:
+            self.showErrorMessage("No port detected")
+            return
+
         for port in self.ports:
             if port.description == portDescription:
                 portName = port.name
-
-        if len(portName) < 1:
-            self.showErrorMessage("Invalid port name")
 
         # Get serial port parameters from widgets
         baud = self.comboBoxBaudrates.currentText()
@@ -840,9 +823,11 @@ class GuiCli(AppMainWindow):
                 response = self.micro.ping()
                 if response == "connected":
                     self.updateStatusBar("Serial device: connected", "#77DD77")
+                    self.writeToLog("Microcontroller connected\n", "#77DD77")
                     self.updateBorderColor(self.buttonConnectDisconnect, "#77DD77")
                 else:
                     self.updateStatusBar("Serial device: not responding", "red")
+                    self.writeToLog("Microcontroller not responding\n", "red")
                     self.updateBorderColor(self.buttonConnectDisconnect, "#FF0000")
         except Exception as e:
             self.showErrorMessage(f'Error{e}')
