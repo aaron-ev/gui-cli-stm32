@@ -565,8 +565,8 @@ class GuiCli(AppMainWindow):
             # Start time will be used as start time for signal plotting
             self.pwmStartTime = time.time()
             try:
-                self.writeToLog("\nResponse: \n\n", '#77DD77')
                 self.micro.monitorPwm(channel)
+                self.writeToLog("\nResponse: \n\n", '#77DD77')
                 self.buttonPwmMonitor.setText("Stop measurement")
             except Exception as e:
                 self.showErrorMessage(f'{e}')
@@ -595,16 +595,16 @@ class GuiCli(AppMainWindow):
             return
 
         try:
-            self.writeToLog("\nResponse: \n\n", '#77DD77')
             self.micro.setRtcTime(hr, min)
+            self.writeToLog("\nResponse: \n\n", '#77DD77')
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
     def slotRtcGetTime(self):
         """ Slot to get the RTC time from the microcontroller """
         try:
-            self.writeToLog("\nResponse: \n\n", '#77DD77')
             self.micro.getRtcTime()
+            self.writeToLog("\nResponse: \n\n", '#77DD77')
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
@@ -618,8 +618,8 @@ class GuiCli(AppMainWindow):
             if len(duty) < 1:
                 raise Exception("Invalid duty cycle")
 
-            self.writeToLog("\nResponse: \n\n", '#77DD77')
             self.micro.setPwmFreqDuty(int(freq), int(duty))
+            self.writeToLog("\nResponse: \n\n", '#77DD77')
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
@@ -628,56 +628,56 @@ class GuiCli(AppMainWindow):
         gpio = self.comboBoxGpios.currentText()
         pin = self.comboBoxPins.currentText()
         try:
-             self.writeToLog("\nResponse: \n\n", '#77DD77')
              self.micro.readPin(gpio, pin)
+             self.writeToLog("\nResponse: \n\n", '#77DD77')
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
     def slotVersion(self):
         """ Slot to get the microcontroller software version """
         try:
-            self.writeToLog("\nResponse: \n\n", '#77DD77')
             self.micro.getVersion()
+            self.writeToLog("\nResponse: \n\n", '#77DD77')
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
     def slotHelp(self):
         """ Slot to display microcontroller help """
         try:
-            self.writeToLog("\nResponse: \n\n", '#77DD77')
             self.micro.help()
+            self.writeToLog("\nResponse: \n\n", '#77DD77')
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
     def slotTicks(self):
         """ Slot to get ticks information """
         try:
-            self.writeToLog("\nResponse: \n\n", '#77DD77')
             self.micro.getTicks()
+            self.writeToLog("\nResponse: \n\n", '#77DD77')
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
     def slotClk(self):
         """ Slot to get clock information """
         try:
-            self.writeToLog("\nResponse: \n\n", '#77DD77')
             self.micro.getClk()
+            self.writeToLog("\nResponse: \n\n", '#77DD77')
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
     def slotStats(self):
         """ Slot to get microcontroller statistics """
         try:
-            self.writeToLog("\nResponse: \n\n", '#77DD77')
             self.micro.getStats()
+            self.writeToLog("\nResponse: \n\n", '#77DD77')
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
     def slotHeap(self):
         """ Slot to get heap information """
         try:
-            self.writeToLog("\nResponse: \n\n", '#77DD77')
             self.micro.getHeap()
+            self.writeToLog("\nResponse: \n\n", '#77DD77')
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
@@ -686,8 +686,8 @@ class GuiCli(AppMainWindow):
         gpio = self.comboBoxGpios.currentText()
         pin = self.comboBoxPins.currentText()
         try:
-            self.writeToLog("\nResponse: \n\n", '#77DD77')
             self.micro.writePin(gpio, pin, True)
+            self.writeToLog("\nResponse: \n\n", '#77DD77')
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
@@ -700,8 +700,8 @@ class GuiCli(AppMainWindow):
         gpio = self.comboBoxGpios.currentText()
         pin = self.comboBoxPins.currentText()
         try:
-            self.writeToLog("\nResponse: \n\n", '#77DD77')
             self.micro.writePin(gpio, pin, False)
+            self.writeToLog("\nResponse: \n\n", '#77DD77')
         except Exception as e:
             self.showErrorMessage(f'{e}')
 
