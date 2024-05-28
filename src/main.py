@@ -422,7 +422,7 @@ class GuiCli(AppMainWindow):
                                             self.appRootPath + self.iconPaths['powerOff'],
                                             )
         # Button: Read from GPIO pin
-        buttonReadPin = self.aWidgets.newButton("Read pin",
+        buttonReadPin = self.aWidgets.newButton("Read",
                                             self.slotButtonReadPin,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['refresh'],
