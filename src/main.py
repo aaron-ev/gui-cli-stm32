@@ -756,7 +756,6 @@ class GuiCli(AppMainWindow):
         self.layoutFrameControl = QGridLayout()
         frame.setLayout(self.layoutFrameControl)
         self.gridLayout.addWidget(frame, 0, 0, -1, 1)
-        self.listWidgets['frame'].append(frame)
 
         # Frame: Frame for holding widgets to GPIO handling
         frame = QFrame()
@@ -812,11 +811,13 @@ class GuiCli(AppMainWindow):
     #############################################################
     def slotConnectDisconnect(self):
         """ Slot to connect and disconnect from the serial port """
+        # Validate selected port
         portDescription = self.comboBoxComPorts.currentText()
         if len(portDescription) < 1:
             self.showErrorMessage("No port detected")
             return
 
+        # Get port name based on the selected port description
         for port in self.ports:
             if port.description == portDescription:
                 portName = port.name
@@ -863,7 +864,6 @@ class GuiCli(AppMainWindow):
         cursor.movePosition(cursor.End)
 
         format_ = QTextCharFormat()
-        format_.setForeground(QColor(color))
 
         if self.currentTheme == 'light' and color == 'white':
             format_.setForeground(QColor('black'))
