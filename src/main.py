@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (QApplication, QMenuBar, QToolBar, QWidget, QGridLay
                              QFrame, QFileDialog, QMessageBox,QStatusBar
                              )
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QFont, QTextCharFormat, QColor
+from PyQt5.QtGui import QIcon, QFont, QTextCharFormat, QColor, QTextCursor
 
 # User defined modules
 from appClasses import AppMainWindow, AWidgets, ASettings
@@ -131,6 +131,12 @@ class GuiCli(AppMainWindow):
                 widget.setStyleSheet(widgetStyles[key])
         # self.toolbar.setIconSize(QSize(self.toolbarIconSize, self.toolbarIconSize))
         self.currentTheme = newTheme
+
+        # Update text already displayed in log widget
+        if newTheme == 'light':
+            self.updateTextColor('dark', self.textBoxLog)
+        if newTheme == 'dark':
+            self.updateTextColor('white', self.textBoxLog)
 
     def initStatusBar(self, statusBar):
         """ Initialize the status bar """
@@ -805,6 +811,23 @@ class GuiCli(AppMainWindow):
         # Check if color is hex code
         self.statusBarWidget.setStyleSheet(f'color:{color};')
         self.statusBarWidget.showMessage(text)
+
+    def updateTextColor(self, color, textEdit):
+        # Define the color you want to change the text to
+        color = QColor(color)
+
+        # Get the text cursor
+        cursor = textEdit.textCursor()
+
+        # Select all the text
+        cursor.select(QTextCursor.Document)
+
+        # Create a QTextCharFormat and set the foreground color
+        charFormat = QTextCharFormat()
+        charFormat.setForeground(color)
+
+        # Apply the format to the selected text
+        cursor.mergeCharFormat(charFormat)
 
     #############################################################
     #                    START OF SLOT FUNCTIONS
