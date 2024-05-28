@@ -708,13 +708,17 @@ class GuiCli(AppMainWindow):
     def slotButtonRefreshSerialPorts(self):
         """ Slot to refresh the list of serial ports """
         self.refreshSerialPorts()
+        if len(self.ports) < 1:
+            self.showErrorMessage("Valid ports not found")
 
     def refreshSerialPorts(self):
         self.comboBoxComPorts.clear()
-        self.ports = serial.tools.list_ports.comports()
-        for port in self.ports:
+        tmpPorts = serial.tools.list_ports.comports()
+        self.ports = []
+        for port in tmpPorts:
             if "USB" in port.hwid:
                 self.comboBoxComPorts.addItem(port.description)
+                self.ports.append(port)
 
     def centerWindow(self):
         """ Centers the window on the screen """
