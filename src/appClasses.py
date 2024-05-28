@@ -46,9 +46,11 @@ class AppMainWindow(QMainWindow):
                     "refresh":"/img/refresh.png",
                     "ram":"/img/ram.png",
                     "freq":"/img/freq.png",
+                    "freq2":"/img/freq2.png",
                     "setTime":"/img/setTime.png",
                     "getTime":"/img/getTime.png",
                     "help":"/img/help.png",
+                    "clear":"/img/clear.png",
                 }
     buttonFontSize = 10
     notiSoundPath = "audio/notification.wav"

@@ -31,7 +31,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationTool
 from matplotlib.figure import Figure
 
 APP_WIDTH = 1020
-APP_HIGHT = 760
+APP_HIGHT = 740
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
@@ -47,7 +47,7 @@ class GuiCli(AppMainWindow):
     buttonSize = (110, 30)
     defaultLogFrameSize = 380
     labelPointSize = 12
-    maxControlFrameWidth = 250
+    maxControlFrameWidth = 290
     maxControlFrameHight = 80
     listWidgets = {
                    'frame':[],
@@ -320,13 +320,14 @@ class GuiCli(AppMainWindow):
                                                   self.slotButtonRefreshSerialPorts,
                                                   self.buttonsFont,
                                                   self.appRootPath + self.iconPaths['refresh'],
-                                                  (60, 25),
+                                                  (60, 35),
                                                   None
                                                 )
         # Button: Clean log
-        buttonCleanLog = self.aWidgets.newButton("Clean",
+        buttonCleanLog = self.aWidgets.newButton("Clear",
                                                   self.slotButtonCleanLog,
                                                   self.buttonsFont,
+                                                  self.appRootPath + self.iconPaths['clear'],
                                                   None,
                                                 )
         self.listWidgets['button'].append(self.buttonConnectDisconnect)
@@ -349,7 +350,7 @@ class GuiCli(AppMainWindow):
         self.layoutLog.addWidget(buttonRefresh, 1, 2)
         self.layoutLog.addWidget(labelBaudRate, 1, 3)
         self.layoutLog.addWidget(self.comboBoxBaudrates, 1, 4)
-        self.layoutLog.addWidget(buttonCleanLog, 2, 0, 1, 1)
+        self.layoutLog.addWidget(buttonCleanLog, 2, 0)
         self.layoutLog.addWidget(self.buttonConnectDisconnect, 2, 1, 1, -1, alignment = Qt.AlignmentFlag.AlignCenter)
         self.layoutLog.addWidget(self.dockLog, 3, 0, 1, -1)
         # self.layoutLog.addWidget(labelTitlePlot, 4, 0, 1, -1)
@@ -479,6 +480,7 @@ class GuiCli(AppMainWindow):
         buttonPwmSetFreqDuty = self.aWidgets.newButton("Set freq/duty",
                                             self.slotPwmSetFreqDuty,
                                             self.buttonsFont,
+                                            self.appRootPath + self.iconPaths['freq2'],
                                             )
         # Button: Start measure
         self.buttonPwmMonitor = self.aWidgets.newButton("Start measurement",
