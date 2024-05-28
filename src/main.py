@@ -865,6 +865,10 @@ class GuiCli(AppMainWindow):
         format_ = QTextCharFormat()
         format_.setForeground(QColor(color))
 
+        if self.currentTheme == 'light' and color == 'white':
+            format_.setForeground(QColor('black'))
+        else:
+            format_.setForeground(QColor(color))
         cursor.insertText(text, format_)
         self.textBoxLog.setTextCursor(cursor)
         self.textBoxLog.ensureCursorVisible()
