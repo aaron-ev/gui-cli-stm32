@@ -91,13 +91,12 @@ class Micro():
             raise Exception("Invalid duty, it should be between 1-100")
 
         # Write frequency
-        cmd = f'pwm-f {freq}'
-        print(cmd)
-        # self.serialThread.write(cmd)
+        cmd = f'pwm-f {freq}\n'
+        self.serialThread.write(cmd)
+
         # Write duty cycle
-        cmd = f'pwm-d {duty} 1'
-        print(cmd)
-        # self.serialThread.write(cmd)
+        cmd = f'pwm-d {duty} 1\n'
+        self.serialThread.write(cmd)
 
     def monitorPwm(self, channel = 1):
         """ Send a command to monitor a PWM channel"""
