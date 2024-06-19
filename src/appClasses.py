@@ -2,7 +2,7 @@ from PyQt5.QtGui import QIcon, QFont, QPixmap
 from PyQt5.QtWidgets import (QGridLayout, QLabel, QPushButton,  QLineEdit, QFileDialog,
                              QMainWindow, QDialog, QHBoxLayout, QWidget, QTextEdit,QComboBox,QDockWidget, QAction, QTabWidget
                             )
-from PyQt5.QtCore import Qt, QThread, QSize
+from PyQt5.QtCore import Qt
 
 from winotify import Notification
 
@@ -10,6 +10,13 @@ import os
 from pydub import AudioSegment
 from pydub.playback import play as playAudio
 import threading
+
+# Matplot modules
+import matplotlib
+matplotlib.use('Qt5Agg')
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
 class AppMainWindow(QMainWindow):
 
@@ -581,3 +588,38 @@ class ASettings(QDialog):
 
     def getTheme(self):
         return self.comboboxThemes.currentText()
+class APlot():
+    canvas = None
+    def __init__(self):
+        self.canvas = FigureCanvas(plt.figure())
+        self.ax = self.canvas.figure.add_subplot(111)
+
+    def plot(self, x , y):
+        self.line.set_xdata(x)
+        self.line.set_ydata(y)
+        self.ax.set_xlim(x[0], x[-1])
+        self.canvas.draw()
+
+    def setXLabel(self, label):
+        self.ax.set_xlabel(label)
+
+    def setYLabel(self, label):
+        self.ax.set_ylabel(label)
+
+    def setTitle(self, title):
+        self.ax.set_title(title)
+
+    def setXlim(self, xLim = (0, 100)):
+        self.ax.set_xlim(xLim[0], xLim[1])
+
+    def setYLim(self, yLim = (0, 1)):
+        self.ax.set_ylim(yLim[0], yLim[1])
+
+    def setLineStyle(self, lineStyle = 'b-'):
+        self.line, = self.ax.plot([], [], lineStyle)
+
+    def setLegend(self, legend):
+        pass
+        # self.ax.legend()
+        # self.ax.legend([self.line], [legend])
+        # self.ax.legend(loc = "upper right")

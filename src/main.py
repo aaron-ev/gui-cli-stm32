@@ -1,7 +1,8 @@
 """
     Author: Aaron Escoboza
-    Description:  GUI application to perform I/O operations
     Github: https://github.com/aaron-ev
+    File name: main.py
+    Description:  GUI application to perform I/O operations
 """
 
 # Built-in modules
@@ -13,11 +14,11 @@ import time
 from PyQt5.QtWidgets import (QApplication, QMenuBar, QToolBar, QWidget, QGridLayout,
                              QFrame, QFileDialog, QMessageBox,QStatusBar
                              )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSlot, QTimer, QSize
 from PyQt5.QtGui import QIcon, QFont, QTextCharFormat, QColor, QTextCursor
 
 # User defined modules
-from appClasses import AppMainWindow, AWidgets, ASettings
+from appClasses import AppMainWindow, AWidgets, ASettings, APlot
 from micro import Micro
 
 # Serial communication modules
@@ -25,30 +26,36 @@ import serial
 import serial.tools.list_ports
 
 # Matplot modules
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
-from matplotlib.figure import Figure
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-APP_WIDTH = 1020
-APP_HIGHT = 740
-class MplCanvas(FigureCanvasQTAgg):
+# Utilities
+import numpy as np
 
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
-        super(MplCanvas, self).__init__(fig)
-        # self.axes.set_facecolor('#2E2E2E')
-        self.setStyleSheet("background-color: white;")  # Black
+# Window size
+APP_WIDTH = 1000
+APP_HIGHT = 860
 
 class GuiCli(AppMainWindow):
-    """ Main window classs """
+    """ Main window class """
+
     appVersion = {'major': '1', 'minor':'0'}
-    buttonSize = (110, 30)
-    defaultLogFrameSize = 380
-    labelPointSize = 12
-    maxControlFrameWidth = 290
-    maxControlFrameHight = 80
+    # Settings that apply to the majority of the widgets
+    guiSettings = {
+                   'buttonSize':(110, 45),
+                   'defaultLogFrameSize':450,
+                   'labelPointSize': 12,
+                   'maxControlFrameWidth': 290,
+                   'maxControlFrameHight': 80,
+                   'currentTheme': 'dark',
+                   'toolbarIconSize': 23,
+                   'textBoxLogHeight': 280,
+                   'frameGpioHeight': 180,
+                   'frameGeneralInfoHeight': 180,
+                   'frameRtcHeight': 150,
+                   'framePwmHeight': 230,
+                  }
+    # All widgets are tracked so that a new theme can be applied to them
     listWidgets = {
                    'frame':[],
                    'button': [],
@@ -59,12 +66,50 @@ class GuiCli(AppMainWindow):
                    'text':[],
                    'toolbar':[],
                    }
-    currentTheme = 'dark'
-    pwmStartTime = 0 # Time when a PWM measurement should started
-    counter = 0
-    listXValues = []
-    listYValues = []
-    toolbarIconSize = 23
+    pwmYValues = []
+    yValues = []
+    t = 0
+    threadStarted = False
+    plotTimer = None
+    plotYValues = []
+    isMonitoring = False
+    oldDigit = 0
+
+    def initPlot(self):
+        self.aplot = APlot()
+        self.aplot.setLineStyle('b-')
+        self.aplot.setXlim((0, 100))
+        self.aplot.setYLim((-0.1, 1.1))
+        self.aplot.setTitle("PWM signal")
+        self.aplot.setXLabel("Time")
+        self.aplot.setYLabel("Logic level")
+        self.plotTimer = QTimer()
+        self.plotTimer.timeout.connect(self.slotPlotTimerTimeOut)
+        # Queue to save plot data coming from the micro
+        self.plotQueue = queue.Queue()
+
+        self.plotNavigationBar = NavigationToolbar(self.aplot.canvas)
+        self.plotNavigationBar.setStyleSheet("background-color:white;")
+        self.aplot.canvas.setMinimumHeight(260)
+
+    def slotPlotTimerTimeOut(self):
+        if not self.plotQueue.qsize() == 0:
+            newDigit = self.plotQueue.get()
+            if len(self.plotYValues) > 500:
+                self.plotYValues = self.plotYValues[25:]
+            [self.plotYValues.append(newDigit) for i in range(0, 25)]
+            # # Create X list with linspace values
+            plotXValues = np.linspace(0, 10, len(self.plotYValues))
+            self.writeToPlot(plotXValues, self.plotYValues)
+
+    def startPlotTimer(self):
+        if self.plotTimer is not None:
+            self.plotTimer.start(1)
+
+    def stopPlotTimer(self):
+        if self.plotTimer is not None:
+            self.plotTimer.stop()
+            self.plotYValues = []
 
     def __init__(self, title, w, h):
         super().__init__()
@@ -94,6 +139,7 @@ class GuiCli(AppMainWindow):
         self.statusBarWidget = QStatusBar()
         self.initStatusBar(self.statusBarWidget)
 
+        self.initPlot()
         # Initialize menu bar
         # self.initMenuBar()
 
@@ -105,12 +151,13 @@ class GuiCli(AppMainWindow):
         # 2. Section for logging and data visualization
         self.initLogSection()
         self.initControlSection()
+        self.aplot.setLegend(f'Channel {self.comboBoxPwmChannels.currentText()}')
 
         # Create queue for saving log messages
         self.logQueue = queue.Queue()
 
-        self.applyTheme(self.currentTheme)
-        if self.currentTheme == 'dark':
+        self.applyTheme(self.guiSettings['currentTheme'])
+        if self.guiSettings['currentTheme'] == 'dark':
             self.writeToLog("Welcome to Micro CLI\n\n", 'white')
         else:
             self.writeToLog("Welcome to Micro CLI\n\n", 'dark')
@@ -129,13 +176,15 @@ class GuiCli(AppMainWindow):
         for key in self.listWidgets:
             for widget in self.listWidgets[key]:
                 widget.setStyleSheet(widgetStyles[key])
-        # self.toolbar.setIconSize(QSize(self.toolbarIconSize, self.toolbarIconSize))
-        self.currentTheme = newTheme
+        self.toolbar.setIconSize(QSize(self.guiSettings['toolbarIconSize'], self.guiSettings['toolbarIconSize']))
+        self.guiSettings['currentTheme'] = newTheme
 
         # Update text already displayed in log widget
         if newTheme == 'light':
             self.updateTextColor('dark', self.textBoxLog)
-        if newTheme == 'dark':
+            self.statusBarWidget.setStyleSheet(f'color:dark;')
+        else:
+            self.statusBarWidget.setStyleSheet(f'color:white;')
             self.updateTextColor('white', self.textBoxLog)
 
     def initStatusBar(self, statusBar):
@@ -144,7 +193,7 @@ class GuiCli(AppMainWindow):
         font = QFont()
         font.setPointSize(10)
         self.statusBarWidget.setFont(font)
-        self.updateStatusBar("Serial device: disconnected", "yellow")
+        self.updateStatusBar("Serial device: disconnected")
 
     def initMenuBar(self):
         """ Initialize the menu bar """
@@ -220,10 +269,11 @@ class GuiCli(AppMainWindow):
 
     def actionSettings(self):
         """ Open a new window with general settings """
+        # Enter in an event loop until user close the pop up window
         if self.settings.exec_():
             # Apply the new theme in case it is different from the current one
             theme = self.settings.getTheme()
-            if theme != self.currentTheme:
+            if theme != self.guiSettings['currentTheme']:
                 self.applyTheme(theme)
 
     def actionHelp(self):
@@ -235,6 +285,7 @@ class GuiCli(AppMainWindow):
                         )
 
     def showSettingsMenu(self):
+        """ Show general settings window """
         if self.settings.exec_():
             self.writeToLog("Apply event\n")
 
@@ -243,24 +294,62 @@ class GuiCli(AppMainWindow):
         while not self.logQueue:
             self.logQueue.get()
 
+    state = "idle"
+    firstRisingEdgeTimeDetection = 0
+    secondRisingEdgeTimeDetection = 0
+    def detectFrequency(self, digit):
+        """ State machine to detect rising, falling and rising edge again"""
+        # print(digit)
+        # Idle state
+        if self.state == "idle":
+            if digit:
+                self.state = "firstEdge"
+                # print("debug: rising edge")
+                self.firstRisingEdgeTimeDetection = time.time()
+
+        # First edge state
+        if self.state == "firstEdge":
+            if not digit :
+                # print("debug: falling edge")
+                self.state = "fallingEdge"
+
+        # Falling edge state
+        if self.state == "fallingEdge":
+            if digit:
+                # print("debug: second rising edge")
+                self.state = "secondRisingEdge"
+                self.secondRisingEdgeTimeDetection = time.time()
+                # Calculate frequency
+                t1 = self.firstRisingEdgeTimeDetection
+                t2 = self.secondRisingEdgeTimeDetection
+                if (t2 - t1) > 0:
+                    freq = str(1 / float(t2 - t1))
+                    dotIndex = freq.find('.')
+                    truncatedFrequency = freq[:dotIndex + 1] + freq[dotIndex  + 1: dotIndex  + 4]
+                    self.writeToLog(f'Frequency: {truncatedFrequency}Hz\n')
+
+        if self.state == "secondRisingEdge":
+            if not digit:
+                # print("debug: second falling edge, going to idle\n")
+                self.state = "idle"
+
     def callbackMicroReadData(self, data):
         """ Callback to receive data read from the microcontroller """
-
         # If data comes from PWW monitor feature, it should be displayed in
         # a plot instead of a text widget.
-        if "data:" in data:
-            self.counter += 1
-            # Get PWM signal state
-            dataSplited = data.split(':')[-1]
-            self.listYValues.append(dataSplited[0])
-            self.listXValues.append(self.counter)
-            print(data)
-            # print(self.listYValues)
-            # print(self.listXValues)
-            # pwmSignalState = data[5:]
-            # # Calculate elapsed time
-            elapsedTime = self.pwmStartTime - time.time()
-            # self.writeToPlot(self.listXValues, self.listYValues)
+        if "pwm:" in data:
+            digit = int(data.split(':')[-1].strip())
+            self.detectFrequency(digit)
+            if not self.plotTimer.isActive():
+                self.startPlotTimer()
+
+            if self.plotQueue.not_full:
+                if digit != self.oldDigit:
+                    self.plotQueue.put(digit)
+                    self.oldDigit = digit
+            else:
+                self.writeToLog("Error: Plot queue full\n")
+
         else: # Any command that is not monitoring
             if not data.strip() == "OK":
                 self.writeToLog(data)
@@ -274,21 +363,15 @@ class GuiCli(AppMainWindow):
 
     def slotComboBoxComPorts(self):
         pass
-        # ports = serial.tools.list_ports.comports()
-        # self.comboBoxComPorts.clear()
-        # for i, port in enumerate(ports):
-        #     self.comboBoxComPorts.addItem("")
-        #     if i == len(ports): return
 
     ##3###########################################################
     #                    START OF INIT FUNCTIONS
     ##3###########################################################
     def initLogSection(self):
-        """ Initialize a section with all widgets to view log information
-        """
+        """ Initialize a section with all widgets to view log information """
         # Create all labels
-        labelPort = self.aWidgets.newLabel("Port", self.labelPointSize, None)
-        labelBaudRate = self.aWidgets.newLabel("Baud rate", self.labelPointSize, None)
+        labelPort = self.aWidgets.newLabel("Port", self.guiSettings['labelPointSize'], None)
+        labelBaudRate = self.aWidgets.newLabel("Baud rate", self.guiSettings['labelPointSize'], None)
         self.listWidgets['label'].append(labelPort)
         self.listWidgets['label'].append(labelBaudRate)
 
@@ -301,17 +384,15 @@ class GuiCli(AppMainWindow):
 
         # Update combobox with available ports
         self.refreshSerialPorts()
-        # self.ports = serial.tools.list_ports.comports()
-        # for port in self.ports:
-            # self.comboBoxComPorts.addItem(port.description)
 
         # Update combobox with supported baudrates
         for baud in self.micro.baudRates:
             self.comboBoxBaudrates.addItem(baud)
-        self.comboBoxBaudrates.setCurrentText('9600')
+        self.comboBoxBaudrates.setCurrentText('115200')
 
         # Dock: Dock for any message from serial port
         self.dockLog, self.textBoxLog = self.aWidgets.newDock("Log", "dock")
+        self.textBoxLog.setFixedHeight(self.guiSettings['textBoxLogHeight'])
         self.listWidgets['text'].append(self.textBoxLog)
 
         # Button: Connect to serial port
@@ -336,21 +417,13 @@ class GuiCli(AppMainWindow):
                                                   self.appRootPath + self.iconPaths['clear'],
                                                   None,
                                                 )
+        # Track all buttons
         self.listWidgets['button'].append(self.buttonConnectDisconnect)
         self.listWidgets['button'].append(buttonRefresh)
         self.listWidgets['button'].append(buttonCleanLog)
 
-        # Matplot
-        self.canvas = MplCanvas(self, width=3, height=3, dpi=100)
-        self.canvas.axes.set_xlabel("Time(s)")
-        self.canvas.axes.set_ylabel("Voltage(V)")
-        self.canvas.axes.set_title("Signal")
-
-        # x =  list(range(0, 7))
-        # y  = [0, 0, 1, 1, 1,0, 0]
-        # self.canvas.axes.plot(x, y)
-        self.toolbar = NavigationToolbar(self.canvas)
-
+        # Add widgets to the log layout
+        ## Serial and text widgets
         self.layoutLog.addWidget(labelPort, 1, 0)
         self.layoutLog.addWidget(self.comboBoxComPorts, 1, 1)
         self.layoutLog.addWidget(buttonRefresh, 1, 2)
@@ -359,33 +432,33 @@ class GuiCli(AppMainWindow):
         self.layoutLog.addWidget(buttonCleanLog, 2, 0)
         self.layoutLog.addWidget(self.buttonConnectDisconnect, 2, 1, 1, -1, alignment = Qt.AlignmentFlag.AlignCenter)
         self.layoutLog.addWidget(self.dockLog, 3, 0, 1, -1)
-        # self.layoutLog.addWidget(labelTitlePlot, 4, 0, 1, -1)
 
-        # self.layoutPlots.addWidget(self.toolbar, 0, 0)
-        self.layoutPlots.addWidget(self.canvas, 1, 0)
+        ## Plot widgets
+        self.layoutPlots.addWidget(self.plotNavigationBar, 0, 0)
+        self.layoutPlots.addWidget(self.aplot.canvas, 1, 0)
 
     def writeToPlot(self, x, y):
         """ Write to the plot the list of x and y values """
-        self.canvas.axes.cla()
-        self.canvas.axes.plot(x, y)
-        self.canvas.draw()
+        self.aplot.plot(x,y)
 
     def initControlSection(self):
         """ Initialize a section with all widgets to perform IO operations with
             the microcontroller.
         """
-        labelTitleGpioRW = self.aWidgets.newLabel("GPIO Write/Read", self.labelPointSize, None)
+        # Create all labels
+        labelTitleGpioRW = self.aWidgets.newLabel("GPIO Write/Read", self.guiSettings['labelPointSize'], None)
         labelGpio= self.aWidgets.newLabel("GPIO", 10, None)
         labelPin = self.aWidgets.newLabel("Pin", 10, None)
-        labelTitleGeneralInfo = self.aWidgets.newLabel("General information ", self.labelPointSize, None)
-        labelTitleRtc = self.aWidgets.newLabel("RTC", self.labelPointSize, None)
+        labelTitleGeneralInfo = self.aWidgets.newLabel("General information ", self.guiSettings['labelPointSize'], None)
+        labelTitleRtc = self.aWidgets.newLabel("RTC", self.guiSettings['labelPointSize'], None)
         labelRtcHr = self.aWidgets.newLabel("Hr", 10, None)
         labelRctMin = self.aWidgets.newLabel("Min", 10, None)
-        labelTitlePwm = self.aWidgets.newLabel("PWM", self.labelPointSize, None)
+        labelTitlePwm = self.aWidgets.newLabel("PWM", self.guiSettings['labelPointSize'], None)
         labelPwmFreq  = self.aWidgets.newLabel("Freq", 10, None)
         labelPwmDuty  = self.aWidgets.newLabel("Duty", 10, None)
         labelPwmChannel = self.aWidgets.newLabel("Channel", 10, None)
 
+        # Track the widgets
         self.listWidgets['label'].append(labelTitleGpioRW)
         self.listWidgets['label'].append(labelGpio)
         self.listWidgets['label'].append(labelPin)
@@ -400,12 +473,12 @@ class GuiCli(AppMainWindow):
 
         # Combobox: GPIOs
         self.comboBoxGpios = self.aWidgets.newComboBox()
-        for gpio in self.micro.getSupportedGpios():
+        for gpio in self.micro.gpios:
             self.comboBoxGpios.addItem(gpio.upper())
 
         # Line: Pin numbers
         self.comboBoxPins = self.aWidgets.newComboBox()
-        minPinNumber, maxPinNumber = self.micro.getSupportedPins()
+        minPinNumber, maxPinNumber = self.micro.pins
         for pinNumber in range(minPinNumber, maxPinNumber + 1):
             self.comboBoxPins.addItem(str(pinNumber).upper())
 
@@ -433,40 +506,48 @@ class GuiCli(AppMainWindow):
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['version'],
                                             )
+        # Button: Help
         buttonHelp = self.aWidgets.newButton("Help",
                                             self.slotHelp,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['info'],
                                             )
+        # Button: Heap information
         buttonHeap = self.aWidgets.newButton("Heap",
                                             self.slotHeap,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['ram'],
                                             None,
                                             )
+        # Button: Tick information
         buttonTicks = self.aWidgets.newButton("Ticks",
                                             self.slotTicks,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['freq'],
                                             )
+        # Button: Clock information
         buttonClk = self.aWidgets.newButton("Clock",
                                             self.slotClk,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['clk'],
                                             )
+        # Button: General statistics
         buttonStats = self.aWidgets.newButton("Stats",
                                             self.slotStats,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['stats'],
                                             )
+
+        # Widgets for RTC peripheral
         self.textRtcHr = self.aWidgets.newLine(10)
         self.textRtcMin = self.aWidgets.newLine(10)
-
+        # Button: Set a time RTC time
         buttonSetTime = self.aWidgets.newButton("Set time",
                                             self.slotRtcSetTime,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['setTime'],
                                             )
+        # Button: Get the current RTC time
         buttonGetTime = self.aWidgets.newButton("Get time",
                                             self.slotRtcGetTime,
                                             self.buttonsFont,
@@ -476,7 +557,6 @@ class GuiCli(AppMainWindow):
         self.comboBoxPwmChannels = self.aWidgets.newComboBox()
         for channel in self.micro.channels:
             self.comboBoxPwmChannels.addItem(channel)
-
 
         # Widgets to set PWM frequency and duty cycle
         self.textPwmFreq = self.aWidgets.newLine(10)
@@ -489,7 +569,7 @@ class GuiCli(AppMainWindow):
                                             self.appRootPath + self.iconPaths['freq2'],
                                             )
         # Button: Start measure
-        self.buttonPwmMonitor = self.aWidgets.newButton("Start measurement",
+        self.buttonPwmMonitor = self.aWidgets.newButton("Monitor channel",
                                             self.slotPwmMonitor,
                                             self.buttonsFont,
                                             self.appRootPath + self.iconPaths['stats'],
@@ -560,20 +640,16 @@ class GuiCli(AppMainWindow):
     def slotPwmMonitor(self):
         """ Slot to monitor a PWM channel"""
         if self.micro.isMonitoring:
-            try:
-                self.micro.stopPwmMonitor()
-                self.pwmStartTime = 0
-                self.buttonPwmMonitor.setText("Start measurement")
-            except Exception as e:
-                self.showErrorMessage(f'{e}')
-        else:
+            self.stopPlotTimer()
+            self.buttonPwmMonitor.setText("Monitor channel")
+        else: # No monitoring active, it should be started
             channel = int(self.comboBoxPwmChannels.currentText())
             # Start time will be used as start time for signal plotting
-            self.pwmStartTime = time.time()
             try:
+                self.aplot.setLegend(f'Channel {channel}')
                 self.micro.monitorPwm(channel)
                 self.writeToLog("\nResponse: \n\n", '#77DD77')
-                self.buttonPwmMonitor.setText("Stop measurement")
+                self.buttonPwmMonitor.setText("Stop monitoring")
             except Exception as e:
                 self.showErrorMessage(f'{e}')
 
@@ -734,13 +810,14 @@ class GuiCli(AppMainWindow):
         # Calculate the center position for the main window
         x = (screenGeometry.width() - self.width()) // 2 - 220
         y = (screenGeometry.height() - self.height()) // 2 - 180
+
         # Set the geometry of the main window to the center position
         self.setGeometry(x, y, self.width(), self.height())
 
     def initMainWindow(self, appRootPath, title, w, h):
         """ Set default main windows properties """
         self.centerWindow()
-        # self.setMinimumSize(w, h)
+        self.setMinimumHeight(h)
         # self.setFixedSize(w, h)
         self.setWindowTitle(title + f" v{self.appVersion['major']}.{self.appVersion['minor']}")
         self.setWindowIcon(QIcon(appRootPath + self.iconPaths["mainIcon"]))
@@ -757,8 +834,8 @@ class GuiCli(AppMainWindow):
 
         # Frame: Frame for holding widgets for controlling the micro
         frame = QFrame(self)
-        frame.setFixedWidth(self.maxControlFrameWidth)
-        # frame.setMaximumHeight(self.maxControlFrameHight)
+        # frame.setFixedWidth(self.guiSettings['maxControlFrameWidth'])
+        # frame.setMaximumHeight(self.guiSettings['maxControlFrameHight'])
         self.layoutFrameControl = QGridLayout()
         frame.setLayout(self.layoutFrameControl)
         self.gridLayout.addWidget(frame, 0, 0, -1, 1)
@@ -767,6 +844,7 @@ class GuiCli(AppMainWindow):
         frame = QFrame()
         self.layoutGpio = QGridLayout()
         frame.setLayout(self.layoutGpio)
+        frame.setMaximumHeight(180)
         self.layoutFrameControl.addWidget(frame, 0, 0)
         self.listWidgets['frame'].append(frame)
 
@@ -774,6 +852,7 @@ class GuiCli(AppMainWindow):
         frame = QFrame()
         self.layoutGeneral = QGridLayout()
         frame.setLayout(self.layoutGeneral)
+        frame.setMaximumHeight(180)
         self.layoutFrameControl.addWidget(frame, 1, 0)
         self.listWidgets['frame'].append(frame)
 
@@ -781,6 +860,7 @@ class GuiCli(AppMainWindow):
         frame = QFrame()
         self.layoutRtc = QGridLayout()
         frame.setLayout(self.layoutRtc)
+        frame.setMaximumHeight(150)
         self.layoutFrameControl.addWidget(frame, 2, 0)
         self.listWidgets['frame'].append(frame)
 
@@ -788,12 +868,13 @@ class GuiCli(AppMainWindow):
         frame = QFrame()
         self.layoutPwm = QGridLayout()
         frame.setLayout(self.layoutPwm)
+        frame.setMaximumHeight(230)
         self.layoutFrameControl.addWidget(frame, 3, 0)
         self.listWidgets['frame'].append(frame)
 
         # Frame: Frame for logs and data visualization
         frame = QFrame()
-        # frame.setMaximumHeight(self.defaultLogFrameSize)
+        frame.setMaximumHeight(self.guiSettings['defaultLogFrameSize'])
 
         self.layoutLog = QGridLayout()
         frame.setLayout(self.layoutLog)
@@ -811,6 +892,7 @@ class GuiCli(AppMainWindow):
         # Check if color is hex code
         self.statusBarWidget.setStyleSheet(f'color:{color};')
         self.statusBarWidget.showMessage(text)
+        self.currentStatus = text
 
     def updateTextColor(self, color, textEdit):
         # Define the color you want to change the text to
@@ -853,9 +935,13 @@ class GuiCli(AppMainWindow):
 
         try:
             if self.micro.isOpen():
+                if self.micro.isMonitoring:
+                    self.buttonPwmMonitor.setText("Monitor channel")
+                #    self.stopPlotTimer()
+                #    self.micro.stopPwmMonitor()
                 self.micro.close()
                 self.buttonConnectDisconnect.setText("Start connection")
-                self.updateStatusBar("Serial device: disconnected", "yellow")
+                self.updateStatusBar("Serial device: disconnected")
                 self.updateBorderColor(self.buttonConnectDisconnect, "#555555")
             else: # Serial device not opened
                 self.micro.open(portName, baud, dataLen, parity, stopBits)
@@ -878,7 +964,6 @@ class GuiCli(AppMainWindow):
         """ Function called when the main window is closed """
         if self.micro.isOpen():
             self.micro.close()
-        print("Closing..")
         event.accept()
 
     def writeToLog(self, text, color = 'white'):
@@ -888,7 +973,7 @@ class GuiCli(AppMainWindow):
 
         format_ = QTextCharFormat()
 
-        if self.currentTheme == 'light' and color == 'white':
+        if self.guiSettings['currentTheme'] == 'light' and color == 'white':
             format_.setForeground(QColor('black'))
         else:
             format_.setForeground(QColor(color))

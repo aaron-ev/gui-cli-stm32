@@ -1,127 +1,159 @@
+"""
+    Author: Aaron Escoboza
+    Github: https://github.com/aaron-ev
+    File name: micro.py
+    Description: Classes that abstracts the microcontroller to have
+                 access to it's features.
+"""
+
 from serialDev import ThreadSerialDev
+
 class Micro():
-    baudRates = ['1200','2400','4800','9600','38400', '115200']
-    # channels = ['CH1', 'CH2', 'CH3', 'CH4']
+    baudRates = ['1200','2400','4800','9600','38400', '115200', '230400']
     channels = ['1', '2', '3', '4']
-    supportedGpios  = ['a','b','c','d','e','h']
-    supportedPins = (0, 15)
-    cmds = {\
+    gpios  = ['a','b','c','d','e','h']
+    pins = (0, 15)
+    cmds = {
             'heap':"heap\n",
             'clk':"clk\n",
             'ticks':"ticks\n",
             'version':"version\n",
-            'stats':"stats\n",
-            'help':"help\n",
-            'rtcTime':"rtc-g\n",
-            'stats':"stats\n",
+            'stats': "stats\n",
+            'help': "help\n",
+            'stats': "stats\n",
+            'gpioWrite': "gpio-w",
+            'gpioRead': "gpio-r",
+            'rtcSet': "rtc-s",
+            'rtcGet': "rtc-g\n",
+            'pwmSetFreq': "pwm-f",
+            'pwmSetDuty': "pwm-d",
+            'pwmMonitor': "pwmMonitor",
+            'ping': "ping\n",
             }
     maxFreq =  10000 # In Hz
+    maxDutyCycle = 100 # (0 - 100)%
     isMonitoring = False
 
     def __init__(self, callbackDataRead):
         self.serialDev = None
+        # User callback for data received from the microcontroller
         self.callbackDataRead = callbackDataRead
+
+        # Thread for sending command and receiving responses via a serial device
         self.serialThread = ThreadSerialDev()
         self.serialThread.signalDataRead.connect(self.slotDataRead)
 
     def slotDataRead(self, data):
+        """ Slot to receive data read from the microcontroller """
         if self.callbackDataRead is not None:
             dataDecoded = data.decode('utf-8')
             self.callbackDataRead(dataDecoded)
 
-    def getSupportedPins(self):
-        return self.supportedPins
-
-    def getSupportedGpios(self):
-        return self.supportedGpios
-
     def getVersion(self):
+        """ Get SW version """
         self.serialThread.write(self.cmds['version'])
 
     def writePin(self, gpio, pin, state):
-        if state == True:
-            cmd = f'gpio-w {gpio.lower()} {pin} 1\n'
-        else:
-            cmd = f'gpio-w {gpio.lower()} {pin} 0\n'
+        """ Write a logical value to a GPIO pin """
+        cmd = self.cmds['gpioWrite'] + f' {gpio.lower()} {pin} {state}\n'
         self.serialThread.write(cmd)
 
     def readPin(self, gpio, pin):
-        cmd = f'gpio-r {gpio.lower()} {pin}\n'
+        """ Read a GPIO pin """
+        cmd = self.cmds['gpioRead'] + f' {gpio.lower()} {pin}\n'
         self.serialThread.write(cmd)
 
     def help(self):
+        """ Reads any help information """
         self.serialThread.write(self.cmds['help'])
 
     def getStatistics(self):
+        """ Reads any help information """
         self.serialThread.write(self.cmds['stats'])
 
     def getTicks(self):
+        """ Get the OS tick counter number """
         self.serialThread.write(self.cmds['ticks'])
 
     def getHeap(self):
+        """ Get OS heap consumption """
         self.serialThread.write(self.cmds['heap'])
 
     def getClk(self):
+        """ Get microcontroller CLK information """
         self.serialThread.write(self.cmds['clk'])
 
     def getStats(self):
+        """ Get microcontroller general information """
         self.serialThread.write(self.cmds['stats'])
 
-    def open(self, serialDev, baud = 9600, dataLen = 8, parity = 'N', stopBits = 1):
+    def open(self, serialDev, baud = 9600, dataLen = 8, parity = 'N',
+             stopBits = 1):
+        """ Open a serial port to exchange data with the microcontroller """
         self.serialThread.open(serialDev, baud, int(dataLen), parity, int(stopBits))
 
     def close(self):
+        """ Kill any thread or monitor activity """
+        if self.isMonitoring:
+            self.stopPwmMonitor()
+            self.isMonitoring = False
         self.serialThread.close()
 
     def isOpen(self):
+        """ Check if a serial communication is opened """
         return self.serialThread.isOpen()
 
     def getRtcTime(self):
-        self.serialThread.write(self.cmds['rtcTime'])
+        """ Get microcontroller RTC time """
+        self.serialThread.write(self.cmds['rtcGet'])
 
     def setRtcTime(self, hr, min, s = 0):
-        cmd = f'rtc-s {hr} {min} {s}'
+        """ Set a new RTC time """
+        cmd = self.cmds['rtcSet'] + f' {hr} {min} {s}\n'
         self.serialThread.write(cmd)
 
     def setPwmFreqDuty(self, freq, duty):
-        # Validate freq and duty parameters
+        """ Set a new PWM frequency and duty cycle """
         if (freq < 0 or freq > self.maxFreq):
             raise Exception("Invalid frequency")
-        if (duty < 0 or duty > 100):
+        if (duty < 0 or duty > self.maxDutyCycle):
             raise Exception("Invalid duty, it should be between 1-100")
 
-        # Write frequency
-        cmd = f'pwm-f {freq}\n'
+        # Frequency and duty cycle are written in two consecutive
+        cmd = self.cmds['pwmSetFreq'] + f' {freq}\n'
         self.serialThread.write(cmd)
-
-        # Write duty cycle
-        cmd = f'pwm-d {duty} 1\n'
+        cmd = self.cmds['pwmSetDuty'] + f' {duty}\n'
         self.serialThread.write(cmd)
 
     def monitorPwm(self, channel = 1):
         """ Send a command to monitor a PWM channel"""
         if str(channel) not in self.channels:
-            raise Exception("Invalid channel, valid range (1-4) ")
-        cmd = f'pwmMonitor {channel}\n'
+            raise Exception("Invalid channel, valid range (1-4)")
+        cmd = self.cmds['pwmMonitor'] + f' {channel}\n'
         self.isMonitoring = True
-        self.writeToSerial(cmd)
+        self.writeToMicro(cmd)
 
     def stopPwmMonitor(self):
         """ Stop PWM monitoring feature """
         cmd = f'stopMonitor\n'
-        self.writeToSerial(cmd)
+        self.writeToMicro(cmd)
         self.isMonitoring = False
-
-    def writeToSerial(self, data, enableReading = True):
-        """ Function to send data to a serial device"""
-        self.serialThread.write(data, enableReading)
 
     def ping(self):
         """ Test if there is a connection with the microcontroller """
-        cmd = f'ping\n'
-        self.writeToSerial(cmd, False)
-        data = self.serialThread.readResponseSync(1).decode()
+        cmd = self.cmds['ping']
+        # Writes to the serial waiting for a read
+        self.writeToMicro(cmd, False)
+        data = self.serialThread.readResponseSync(timeout = 1).decode()
         if data.strip() == "OK":
             return "connected"
         else:
             return "disconnected"
+
+    def writeToMicro(self, data, enableRead = True):
+        """ Writes to the serial port where the microcontroller is connected.
+            By default, each writes waits for a response in a separate thread.
+            Reading after a write can be disabled by setting enable read to
+            False.
+        """
+        self.serialThread.write(data, enableRead)
