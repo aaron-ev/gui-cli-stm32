@@ -2,7 +2,8 @@
     Author: Aaron Escoboza
     Github: https://github.com/aaron-ev
     File name: main.py
-    Description:  GUI application to perform I/O operations
+    Description:  GUI application to perform I/O operations in a
+    microcontroller.
 """
 
 # Built-in modules
@@ -75,24 +76,8 @@ class GuiCli(AppMainWindow):
     isMonitoring = False
     oldDigit = 0
 
-    def initPlot(self):
-        self.aplot = APlot()
-        self.aplot.setLineStyle('b-')
-        self.aplot.setXlim((0, 100))
-        self.aplot.setYLim((-0.1, 1.1))
-        self.aplot.setTitle("PWM signal")
-        self.aplot.setXLabel("Time")
-        self.aplot.setYLabel("Logic level")
-        self.plotTimer = QTimer()
-        self.plotTimer.timeout.connect(self.slotPlotTimerTimeOut)
-        # Queue to save plot data coming from the micro
-        self.plotQueue = queue.Queue()
-
-        self.plotNavigationBar = NavigationToolbar(self.aplot.canvas)
-        self.plotNavigationBar.setStyleSheet("background-color:white;")
-        self.aplot.canvas.setMinimumHeight(260)
-
     def slotPlotTimerTimeOut(self):
+        """ Slot for catching the timer timeout """
         if not self.plotQueue.qsize() == 0:
             newDigit = self.plotQueue.get()
             if len(self.plotYValues) > 500:
@@ -103,10 +88,12 @@ class GuiCli(AppMainWindow):
             self.writeToPlot(plotXValues, self.plotYValues)
 
     def startPlotTimer(self):
+        """ Start a timer for plotting data """
         if self.plotTimer is not None:
             self.plotTimer.start(1)
 
     def stopPlotTimer(self):
+        """ Stop the plot timer """
         if self.plotTimer is not None:
             self.plotTimer.stop()
             self.plotYValues = []
@@ -165,27 +152,23 @@ class GuiCli(AppMainWindow):
         # Initialize event loop by calling show method
         self.show()
 
-    def applyTheme(self, theme):
-        """ Apply a new theme to all widgets """
-        # Select the theme
-        newTheme = theme.lower()
-        widgetStyles = self.themes[newTheme]
+    def initPlot(self):
+        """ Initialize the a plot object to plot a PWM signal """
+        self.aplot = APlot()
+        self.aplot.setLineStyle('b-')
+        self.aplot.setXlim((0, 100))
+        self.aplot.setYLim((-0.1, 1.1))
+        self.aplot.setTitle("PWM signal")
+        self.aplot.setXLabel("Time")
+        self.aplot.setYLabel("Logic level")
+        self.plotTimer = QTimer()
+        self.plotTimer.timeout.connect(self.slotPlotTimerTimeOut)
+        # Queue to save plot data coming from the micro
+        self.plotQueue = queue.Queue()
 
-        # Set the new style to each widget
-        self.setStyleSheet(widgetStyles['mainWindow'])
-        for key in self.listWidgets:
-            for widget in self.listWidgets[key]:
-                widget.setStyleSheet(widgetStyles[key])
-        self.toolbar.setIconSize(QSize(self.guiSettings['toolbarIconSize'], self.guiSettings['toolbarIconSize']))
-        self.guiSettings['currentTheme'] = newTheme
-
-        # Update text already displayed in log widget
-        if newTheme == 'light':
-            self.updateTextColor('dark', self.textBoxLog)
-            self.statusBarWidget.setStyleSheet(f'color:dark;')
-        else:
-            self.statusBarWidget.setStyleSheet(f'color:white;')
-            self.updateTextColor('white', self.textBoxLog)
+        self.plotNavigationBar = NavigationToolbar(self.aplot.canvas)
+        self.plotNavigationBar.setStyleSheet("background-color:white;")
+        self.aplot.canvas.setMinimumHeight(260)
 
     def initStatusBar(self, statusBar):
         """ Initialize the status bar """
@@ -218,9 +201,6 @@ class GuiCli(AppMainWindow):
         # Set menu bar to the main window
         self.setMenuBar(menuBar)
 
-    def actionInfo(self):
-        self.writeToLog("Info not implemented yet\n")
-
     def initToolBar(self):
         """ Initialize the tool bar """
         self.toolbar = QToolBar()
@@ -247,6 +227,31 @@ class GuiCli(AppMainWindow):
         self.toolbar.setMovable(False)
 
         self.addToolBar(self.toolbar)
+
+    def applyTheme(self, theme):
+        """ Apply a new theme to all widgets """
+        # Select the theme
+        newTheme = theme.lower()
+        widgetStyles = self.themes[newTheme]
+
+        # Set the new style to each widget
+        self.setStyleSheet(widgetStyles['mainWindow'])
+        for key in self.listWidgets:
+            for widget in self.listWidgets[key]:
+                widget.setStyleSheet(widgetStyles[key])
+        self.toolbar.setIconSize(QSize(self.guiSettings['toolbarIconSize'], self.guiSettings['toolbarIconSize']))
+        self.guiSettings['currentTheme'] = newTheme
+
+        # Update text already displayed in log widget
+        if newTheme == 'light':
+            self.updateTextColor('dark', self.textBoxLog)
+            self.statusBarWidget.setStyleSheet(f'color:dark;')
+        else:
+            self.statusBarWidget.setStyleSheet(f'color:white;')
+            self.updateTextColor('white', self.textBoxLog)
+
+    def actionInfo(self):
+        self.writeToLog("Info not implemented yet\n")
 
     def actionSaveLog(self):
         """ Save the log to a text file """
@@ -297,6 +302,7 @@ class GuiCli(AppMainWindow):
     state = "idle"
     firstRisingEdgeTimeDetection = 0
     secondRisingEdgeTimeDetection = 0
+
     def detectFrequency(self, digit):
         """ State machine to detect rising, falling and rising edge again"""
         # print(digit)
@@ -885,16 +891,17 @@ class GuiCli(AppMainWindow):
         frame = QFrame()
         self.layoutPlots = QGridLayout()
         frame.setLayout(self.layoutPlots)
+
         self.gridLayout.addWidget(frame, 1, 1)
 
     def updateStatusBar(self, text, color = 'white'):
-        """ Update the status bar with a new text """
-        # Check if color is hex code
+        """ Update the status bar state """
         self.statusBarWidget.setStyleSheet(f'color:{color};')
         self.statusBarWidget.showMessage(text)
         self.currentStatus = text
 
     def updateTextColor(self, color, textEdit):
+        """ Update the color font of a text edit widget """
         # Define the color you want to change the text to
         color = QColor(color)
 
@@ -915,8 +922,10 @@ class GuiCli(AppMainWindow):
     #                    START OF SLOT FUNCTIONS
     #############################################################
     def slotConnectDisconnect(self):
-        """ Slot to connect and disconnect from the serial port """
-        # Validate selected port
+        """ Slot to process the connection and disconnection from the
+            the serial port.
+        """
+        # Validate the selected port
         portDescription = self.comboBoxComPorts.currentText()
         if len(portDescription) < 1:
             self.showErrorMessage("No port detected")
@@ -933,21 +942,23 @@ class GuiCli(AppMainWindow):
         stopBits = self.settings.getSerialStopBits()
         parity  = self.settings.getSerialParity()
 
+        # Handle connection and disconnection states
         try:
-            if self.micro.isOpen():
+            if self.micro.isOpen(): # Serial device is opened
                 if self.micro.isMonitoring:
                     self.buttonPwmMonitor.setText("Monitor channel")
-                #    self.stopPlotTimer()
-                #    self.micro.stopPwmMonitor()
+                # Close any current connection and update any widget
                 self.micro.close()
                 self.buttonConnectDisconnect.setText("Start connection")
                 self.updateStatusBar("Serial device: disconnected")
                 self.updateBorderColor(self.buttonConnectDisconnect, "#555555")
             else: # Serial device not opened
+                # Open the serial port with the user
                 self.micro.open(portName, baud, dataLen, parity, stopBits)
                 self.buttonConnectDisconnect.setText("Stop connection")
 
                 # Check if the microcontroller can response to a ping command
+                # after a successful connection
                 response = self.micro.ping()
                 if response == "connected":
                     self.updateStatusBar("Serial device: connected", "#77DD77")
@@ -961,16 +972,19 @@ class GuiCli(AppMainWindow):
             self.showErrorMessage(f'Error{e}')
 
     def closeEvent(self, event):
-        """ Function called when the main window is closed """
+        """ Function called when the main window is closed
+            by pressing the X button.
+           """
+        # Make sure any microcontroller instance or serial port is closed
+        # properly
         if self.micro.isOpen():
             self.micro.close()
         event.accept()
 
     def writeToLog(self, text, color = 'white'):
-        """ Write to the dock/text widget """
+        """ Write a text to the log dock/text widget """
         cursor = self.textBoxLog.textCursor()
         cursor.movePosition(cursor.End)
-
         format_ = QTextCharFormat()
 
         if self.guiSettings['currentTheme'] == 'light' and color == 'white':
@@ -983,50 +997,27 @@ class GuiCli(AppMainWindow):
 
     def showErrorMessage(self, text):
         """ Pops up an error window  """
-        # Create a message box with information icon
+        # Create a message box and initialize it
         icon = QMessageBox.Icon(QMessageBox.Icon.Critical)
-        msgBox = QMessageBox()
-        msgBox.setIcon(icon)
-        msgBox.setWindowIcon(QIcon(self.appRootPath + self.iconPaths["mainIcon"]))
-        msgBox.setWindowTitle("Error")
-        msgBox.setText(text)
-        # Set style sheet for the message box
-        msgBox.setStyleSheet("""
+        messageBox = QMessageBox()
+        messageBox.setIcon(icon)
+        messageBox.setWindowIcon(QIcon(self.appRootPath + self.iconPaths["mainIcon"]))
+        messageBox.setWindowTitle("Error")
+        messageBox.setText(text)
+        messageBox.setStyleSheet("""
             QMessageBox {
                 background-color: #F0F0F0; /* Light gray background */
                 color: black; /* Text color */
                 border: 2px solid #00BFFF; /* Border color */
             }
         """)
-        # Add buttons to the message box
-        msgBox.addButton(QMessageBox.Ok)
-        # Show the message box
-        msgBox.exec_()
 
-    def showWarningMessage(self, text, title = None):
-        """ Pops up a warning window """
-        # Create a message box with information icon
-        icon = QMessageBox.Icon(QMessageBox.Icon.Warning)
-        msgBox = QMessageBox()
-        msgBox.setIcon(icon)
-        msgBox.setWindowIcon(QIcon(self.appRootPath + self.iconPaths["mainIcon"]))
-        if title is not None:
-            msgBox.setWindowTitle(title)
-        else:
-            msgBox.setWindowTitle("Warning")
-        msgBox.setText(text)
-        # Set style sheet for the message box
-        msgBox.setStyleSheet("""
-            QMessageBox {
-                background-color: #F0F0F0; /* Light gray background */
-                color: black; /* Text color */
-                border: 2px solid #00BFFF; /* Border color */
-            }
-        """)
         # Add buttons to the message box
-        msgBox.addButton(QMessageBox.Ok)
+        messageBox.addButton(QMessageBox.Ok)
+
         # Show the message box
-        msgBox.exec_()
+        messageBox.exec_()
+
 
 if __name__ == '__main__':
     app = QApplication([])
